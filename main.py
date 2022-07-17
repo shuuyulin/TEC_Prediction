@@ -10,7 +10,7 @@ from preprocessing import initialize_normalization
 from dataset import initialize_dataset
 from training_tools import initialize_criterion, initialize_optimizer, initialize_lr_scheduler
 from models import initialize_model
-
+import json
 def get_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument('-c', '--config', type=str, default='config.ini')
@@ -44,11 +44,12 @@ def main():
     # print(df.head())
     print(df.info())
     
-    # preprocessing
+    # preprocessing # TODO: refine code to a preprocessing file
+    
     norm = initialize_normalization(config)
     
-    norm_params = norm.fit(df[df.columns[-1]])
-    
+    norm_params = json.load(open(f'./data/{config["data"]["normalization_type"]}_p.json', 'r'))['(25, 120)'] # ()
+    print(norm_params)
     df[df.columns[-1]] = norm.normalize(df[df.columns[-1]], *norm_params)
         
     # get dataloader
