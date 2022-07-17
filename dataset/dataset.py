@@ -36,7 +36,7 @@ class SWGIMDataset(Dataset):
         
     def __getitem__(self, idx):
         data_idx = self.data_indices[idx]
-                    
+
         space_data = self.df.iloc[data_idx:data_idx + self.input_time_step, 3:8]
         tec_data = self.df.iloc[data_idx:data_idx + self.input_time_step, 8:len(self.df.columns)]
         tec_truth = self.df.iloc[data_idx + self.input_time_step + self.output_time_step - 1, 8:len(self.df.columns)]

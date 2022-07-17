@@ -1,8 +1,11 @@
 import torch.nn as nn
 import torch.optim as optim
+from .criterion import RMSELoss
+
 def initialize_criterion(config, *args, **kwargs):
     criterion_type_list = {
         'MSELoss': nn.MSELoss,
+        'RMSELoss': RMSELoss,
         'L1Loss': nn.L1Loss,
     }
     criterion_type = config['train']['criterion']

@@ -1,3 +1,7 @@
+# TODO
+# tensorboardX
+#
+# logger
 import argparse
 import configparser
 from pathlib import Path
@@ -7,16 +11,11 @@ from dataset import initialize_dataset
 from training_tools import initialize_criterion, initialize_optimizer, initialize_lr_scheduler
 from models import initialize_model
 
-# Paths
-BASEPATH = Path(__file__).parent
-DATAPATH = BASEPATH / Path('raw_data/SWGIM_year')
-CONFIGPATH = BASEPATH / Path('config.ini')
-RECORDPATH = BASEPATH / Path('./record')
-
 def get_parser():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--mode', type=str)
-    parser.add_argument('--model_path', type=str)
+    parser.add_argument('-c', '--config', type=str, default='config.ini')
+    parser.add_argument('-m', '--mode', type=str, default='train')
+    parser.add_argument('-r','--record', type=str) # record path
     
     return parser
 
@@ -27,12 +26,11 @@ def main():
     
     # configparser
     config = configparser.ConfigParser()
-    config.read(CONFIGPATH)
+    config.read(args.config)
     
-    # record path
-    global RECORDPATH
-    RECORDPATH = get_record_path(RECORDPATH, args)
-    
+    # paths
+    RECORDPATH = get_record_path(args)
+    DATAPATH = './data/'
     # device
     if not torch.cuda.is_available():
         config['global']['device'] = 'cpu'
@@ -44,11 +42,14 @@ def main():
     df = read_csv_data(config, args.mode, DATAPATH)
     
     # print(df.head())
-    # print(df.info())
+    print(df.info())
+    
     # preprocessing
     norm = initialize_normalization(config)
     
-    df[df.columns[3: len(df.columns)]] = norm.fit_transform(df[df.columns[3: len(df.columns)]])
+    norm_params = norm.fit(df[df.columns[-1]])
+    
+    df[df.columns[-1]] = norm.normalize(df[df.columns[-1]], *norm_params)
         
     # get dataloader
     if args.mode == 'train':
@@ -56,14 +57,15 @@ def main():
         train_indices, valid_indices = get_indices(config, df, rd_seed, 'train')
         train_loader = initialize_dataset(config, df, train_indices, task="train")
         valid_loader = initialize_dataset(config, df, valid_indices, task="eval")
+        print(f'indices len: {len(train_indices)}, {len(valid_indices)}')
     elif args.mode == 'test':
         
         test_indices = get_indices(config, df, rd_seed, 'test')
         test_loader = initialize_dataset(config, df, test_indices, task="eval")
+        print(f'indices len: {len(test_indices)}')
     else:
         raise AttributeError(f'no mode name: {args.mode}')
     
-    print(f'indices len: {len(test_indices)}')
     
     # for idx, data in enumerate(test_loader):
     #     if idx <= 0:
@@ -83,7 +85,7 @@ def main():
         for epoch in range(config.getint('train', 'epoch')):
             print(f'epoch: {epoch}')
             tr_loss = train_one(config, norm, model, train_loader, optimizer, scheduler)
-            vl_loss = eval_one(config, norm, model, valid_loader)
+            vl_loss, _ = eval_one(config, norm, model, valid_loader)
             lrs.append(get_lr(optimizer))
             scheduler.step(vl_loss)
             tr_losses.append(tr_loss)
@@ -101,9 +103,21 @@ def main():
         
     elif args.mode == 'test':
         loss, pred = eval_one(config, norm, model, test_loader, 'Test')
-        print(f'test loss: {loss}')
-        print(pred.shape)
-        pd.DataFrame(pred, columns=['predict']).to_csv(RECORDPATH / Path('predition.csv'))
+        
+        # pd.DataFrame(pred, columns=['prediction']).to_csv(RECORDPATH /Path('predict_normed.csv'))
+        
+        print(f'test normalized loss: {loss}')
+        
+        # postprocessing
+        pred_denormed = norm.denormalize(pred, *norm_params)
+        truth_denormed = norm.denormalize(df.iloc[test_indices, -1].to_numpy(), *norm_params)
+        print(pred_denormed.shape, truth_denormed.shape)
+        
+        print(f'test denormalized loss: {criterion(torch.tensor(pred_denormed), torch.tensor(truth_denormed))}')
+        pred_df = df.copy()
+        pred_df[pred_df.columns[-1]] = np.concatenate([[None]*config.getint('data', 'reserved'), pred_denormed], axis=0)
+        
+        pred_df.to_csv(RECORDPATH / Path('prediction.csv'))
         
 def train_one(config, norm, model, dataloader, optimizer, scheduler=None):
     model.train()
@@ -124,7 +138,7 @@ def train_one(config, norm, model, dataloader, optimizer, scheduler=None):
             nowloss = loss.item()
 
             totalloss += nowloss
-            tqdm_loader.set_postfix(loss=f'{nowloss:.3f}', avgloss=f'{totalloss/(idx+1):3f}')
+            tqdm_loader.set_postfix(loss=f'{nowloss:.7f}', avgloss=f'{totalloss/(idx+1):7f}')
     return totalloss/len(tqdm_loader)
 
 def eval_one(config, norm, model, dataloader, mode='Valid'):
@@ -143,13 +157,9 @@ def eval_one(config, norm, model, dataloader, mode='Valid'):
                 
                 nowloss = loss.item()
                 totalloss += nowloss
-                tqdm_loader.set_postfix(loss=f'{nowloss:.3f}', avgloss=f'{totalloss/(idx+1):3f}')
+                tqdm_loader.set_postfix(loss=f'{nowloss:.7f}', avgloss=f'{totalloss/(idx+1):.7f}')
     tec_pred_list = np.concatenate(output_list, axis=0)
-    
-    # denormalize
-    tec_pred_list = norm.inverse_transform(tec_pred_list.reshape((-1,1)))
-    print(tec_pred_list.shape)
-    
+        
     return totalloss/len(tqdm_loader), tec_pred_list
 
 if __name__ == '__main__':
