@@ -7,21 +7,18 @@ import random
 from utils import *
 
 class SWGIMDataset(Dataset):
-    def __init__(self, config, df, data_indices, task="train"):
+    def __init__(self, config, df, truth_df, data_indices, task="train"):
         self.config = config
         self.df = df
+        self.truth_df = truth_df
         self.data_indices = data_indices
         
         self.reduce = config.getboolean('data', 'reduce')
         self.input_time_step = config.getint('model', 'input_time_step')
         self.output_time_step = config.getint('model', 'output_time_step')
-        
         self.predict_range = config['global']['predict_range']
         if self.predict_range != 'global':
-            self.predict_range = configlist2intlist(self.predict_range)
-        
-        # # apply normalization to space weather and tec
-        # self.df[self.df.columns[3: len(self.df.columns)]] = norm(self.df[self.df.columns[3: len(self.df.columns)]])
+            self.predict_range = config2intlist(self.predict_range)
         
         if task == 'train':
             random.shuffle(self.data_indices)
@@ -38,8 +35,11 @@ class SWGIMDataset(Dataset):
         data_idx = self.data_indices[idx]
 
         space_data = self.df.iloc[data_idx:data_idx + self.input_time_step, 3:8]
-        tec_data = self.df.iloc[data_idx:data_idx + self.input_time_step, 8:len(self.df.columns)]
-        tec_truth = self.df.iloc[data_idx + self.input_time_step + self.output_time_step - 1, 8:len(self.df.columns)]
+        tec_data = self.df.iloc[data_idx:data_idx + self.input_time_step, 8:]
+        try:
+            tec_truth = self.truth_df.iloc[data_idx, 3:] # TODO: global
+        except:
+            print('error', idx, data_idx)
             
         return  torch.tensor(space_data.values), torch.tensor(tec_data.values),\
                 torch.tensor(tec_truth.values)
