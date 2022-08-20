@@ -39,12 +39,8 @@ def main():
     setSeed(rd_seed)
     
     # read csv data
-    df = read_csv_data(config, args.mode, DATAPATH)
+    df, truth_df = read_csv_data(config, args.mode, DATAPATH)
     
-    tmp = max(int(config['data']['reserved']),\
-        int(config['model']['input_time_step']) + int(config['model']['output_time_step'])-1)
-    truth_df = df.iloc[tmp:,[0,1,2,8]] # TODO: global
-    del tmp
     print(truth_df.info())
     
     # print(df.head())
@@ -56,7 +52,10 @@ def main():
     df = processer.preprocess(df)
     if config['preprocess']['predict_norm'] == 'True':
         truth_df = processer.preprocess(truth_df)
-
+        
+    # print(df.head())
+    # print(truth_df.head())
+    
     # get dataloader
     if args.mode == 'train':
     
@@ -75,6 +74,8 @@ def main():
     # for idx, data in enumerate(train_loader):
     #     if idx <= 0:
     #         print(f'{idx} {data}')
+    
+    # exit()
     
     criterion = initialize_criterion(config)
     model = initialize_model(config, args, criterion).to(device=config['global']['device'])
@@ -156,8 +157,9 @@ def eval_one(config, model, dataloader, mode='Valid'):
                 for d in data:
                     data[d] = data[d].to(device=config['global']['device'])
 
-                output, loss = model(**data) #output shape(4, 1)
-                # print(output.shape) 
+                output, loss = model(**data) #output shape(batch, output_step or 1 , 1)
+                
+                # print(output.shape)
                 output_list.append(output.detach().cpu().view(-1).numpy())
                 
                 nowloss = loss.item()

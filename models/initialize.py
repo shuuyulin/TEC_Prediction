@@ -1,5 +1,4 @@
 from .LSTMTEC import LSTMTEC
-from .LSTM_TEC import LSTM_TEC
 from .LSTM_seq2seq import LSTM_Seq2Seq
 import torch
 from pathlib import Path
@@ -15,9 +14,9 @@ def initialize_model(config, arg, *args, **kwargs):
         'LSTM_Seq2Seq_TEC' : 1,
     }
     
+    model_name = config['model']['model_name']
     feature_dim = model_ft_list[model_name]
     
-    model_name = config['model']['model_name']
     if arg.mode == 'train':
         return model_list[model_name](config, feature_dim, *args, **kwargs)
     else: # test

@@ -5,9 +5,11 @@ from utils import *
 from torch.nn.utils.rnn import pad_sequence, pack_padded_sequence
 import torch
 
-def single_point_LSTM_formatter(batch): # ingore space weather
+def TEC_formatter(batch): # ignore space weather
     
     _, tec, truth = zip(*batch)
+    
+    truth = truth[:,-1] #only take last tec
     
     tec_lens = [len(t) for t in tec]
     
@@ -21,11 +23,11 @@ def single_point_LSTM_formatter(batch): # ingore space weather
         'truth_pad':truth_pad,
     }
 
-def LSTM_TEC_formatter(batch): # with space weather
+def TEC_2SW_formatter(batch): # with space weather
     
     SW, tec, truth = zip(*batch)
     
-    # LSTM TEC model only takes F10.7 & ap index
+    # TEC_2SW model only takes F10.7 & ap index
     SW = [data[:,[4, 3]] for data in SW]
     
     input_feature = [torch.cat((a,b), dim=1) for a, b in zip(SW, tec)]
@@ -40,4 +42,16 @@ def LSTM_TEC_formatter(batch): # with space weather
     return {
         'feature_packed':feature_packed,
         'truth_pad':truth_pad,
+    }
+    
+def Seq2Seq_TEC_formatter(batch): # ignore space weather
+    # print(batch)
+    _, tec, truth = zip(*batch)
+    
+    tec = torch.stack(tec)
+    truth = torch.stack(truth)
+    
+    return {
+        'x':tec,
+        'y':truth,
     }

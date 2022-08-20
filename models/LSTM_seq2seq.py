@@ -1,9 +1,11 @@
+import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
 class LSTM_Seq2Seq(nn.Module):
     def __init__(self, config, feature_dim, criterion=None):
-        super(LSTM_TEC, self).__init__()
+        super().__init__()
         self.config = config
         self.feature_dim = feature_dim
         self.criterion = criterion
@@ -11,67 +13,76 @@ class LSTM_Seq2Seq(nn.Module):
         self.device = config['global']['device']
         self.input_time_step = config.getint('model', 'input_time_step')
         self.output_time_step = config.getint('model', 'output_time_step')
+        self.embedding_size = config.getint('model', 'embedding_size')
         self.hidden_size = config.getint('model', 'hidden_size')
         self.lstm_layer = config.getint('model', 'lstm_layer')
         self.dropout = config.getfloat('model', 'dropout') if self.lstm_layer > 1 else 0
         
-        self.encoder = Encoder(self.feature_dim, self.hidden_size, self.lstm_layer, self.dropout)
-        self.decoder = Decoder(self.feature_dim, self.hidden_size, self.lstm_layer, self.dropout)
+        self.encoder = Encoder(self.feature_dim, self.embedding_size, self.hidden_size, self.lstm_layer, self.dropout)
+        self.decoder = Decoder(self.feature_dim, self.embedding_size, self.hidden_size, self.lstm_layer, self.dropout)
 
-    def forward(self, feature_packed, truth_pad):
+    def forward(self, x, y):
         
         # tensor to store decoder outputs of each time step
         outputs = torch.zeros(y.shape).to(self.device)
         
         # last hidden state of the encoder is used as the initial hidden state of the decoder
-        hidden, cell = self.encoder(feature_packed)
+        hidden, cell = self.encoder(x)
 
-        # first input to decoder is last coordinates of feature_packed
-        decoder_input = feature_packed[:, -1, :]
+        # first input to decoder is last coordinates of x
+        # only take TEC feature
+        decoder_input = x[:, -1, -1].unsqueeze(-1).unsqueeze(-1)
         
         for i in range(self.output_time_step):
             # run decode for one time step
             output, hidden, cell = self.decoder(decoder_input, hidden, cell)
 
+            # print(outputs.shape)
+            # print(output.shape)
             # place predictions in a tensor holding predictions for each time step
-            outputs[i] = output
+            outputs[:, i:i+1, :] = output
             
-            # Auto regression, avoid teacher forcing
-
-        return outputs self.criterion(outputs.float(), truth_pad.float())\
-            if self.criterion else outputs
+            # auto regression, avoid teacher forcing
+            decoder_input = output
+            
+        return outputs[:,-1], self.criterion(outputs.float(), y.float())\
+            if self.criterion else outputs[:,-1]
+            # only takes last output time step
 
 class Encoder(nn.Module):
-    def __init__(self, feature_dim, hidden_size, lstm_layer, dropout):
+    def __init__(self, feature_dim, embedding_size, hidden_size, lstm_layer, dropout):
         super().__init__()
-                
-        self.lstm = nn.LSTM(input_size=feature_dim, hidden_size=hidden_size,
-                            num_layers=lstm_layer, dropout=dropout)
-
+        
+        self.embedding = nn.Linear(in_features=feature_dim, out_features=embedding_size)
+        self.dropout = nn.Dropout(dropout)
+        self.lstm = nn.LSTM(input_size=embedding_size, hidden_size=hidden_size,
+                            num_layers=lstm_layer, batch_first=True, dropout=dropout)
+        
     def forward(self, x):
         """
-        x: input batch data, size: [sequence len, batch size, feature size]
-        for the argoverse trajectory data, size(x) is [20, batch size, 2]
+        x: input batch data, size: [batch size, sequence len, feature size]
         """
-        embedded = self.dropout(F.relu(self.linear(x)))
-        output, (hidden, cell) = self.rnn(embedded)
+        embedded = self.dropout(F.relu(self.embedding(x)))
+        output, (hidden, cell) = self.lstm(embedded)
         return hidden, cell
 
 class Decoder(nn.Module):
-    def __init__(self, feature_dim, hidden_size, num_layers, dropout):
+    def __init__(self, feature_dim, embedding_size, hidden_size, lstm_layer, dropout):
         super().__init__()
-        
-        self.lstm = nn.LSTM(input_size=feature_dim, hidden_size=hidden_size,
-                            num_layers=lstm_layer, dropout=dropout)
+        self.embedding = nn.Linear(in_features=1, out_features=embedding_size)
+        # only take TEC feature but SW feature
+        # to ensure in_feature dim of embedding equals out_feature dim of fc
+        self.dropout = nn.Dropout(dropout)
+        self.lstm = nn.LSTM(input_size=embedding_size, hidden_size=hidden_size,
+                            num_layers=lstm_layer, batch_first=True, dropout=dropout)
         self.fc = nn.Linear(in_features=hidden_size, out_features=1) # regression
 
-    def forward(self, feature_packed, hidden, cell):
+    def forward(self, x, hidden, cell):
         
-        lstm_output_packed, _ = self.lstm(feature_packed.float(), (hidden, cell))
-        # print(lstm_output_packed.shape)
-        lstm_output, output_lengths = pad_packed_sequence(lstm_output_packed, batch_first=True)
-        # print(lstm_output.shape)
+        embedded = self.dropout(F.relu(self.embedding(x)))
+        lstm_output, _ = self.lstm(embedded, (hidden, cell))
+        
         # ==QUESTION== need activation function?
-        pred = self.fc(lstm_output[:,-1,:])
+        pred = self.fc(lstm_output)
 
         return pred, hidden, cell

@@ -29,7 +29,7 @@ class processer():
         for col in df.columns:
             parm_col = col[1] if col[0] in ('OMNIWeb', 'UTC') else f'({col[4]}, {col[5]})'
             
-            if parm_col in ('Year','Day','Hour'):
+            if parm_col in ('year','DOY','hour'):
                 pass
             elif parm_col in self.norm_params:
                 df[col] = self.norm.normalize(df[col], *self.norm_params[parm_col])
@@ -41,7 +41,7 @@ class processer():
         for col in df.columns:
             parm_col = col[1] if col[0] in ('OMNIWeb', 'UTC') else f'({col[4]}, {col[5]})'
             
-            if parm_col in ('Year','Day','Hour'):
+            if parm_col in ('year','DOY','hour'):
                 pass
             elif parm_col in self.norm_params:
                 df[col] = self.norm.denormalize(df[col], *self.norm_params[parm_col])

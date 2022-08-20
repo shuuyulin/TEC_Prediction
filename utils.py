@@ -32,13 +32,11 @@ def read_csv_data(config, mode, DATAPATH):
         all_df = pd.read_csv(DATAPATH / Path(f'single_point_{mode}.csv'), header=list(range(6)), index_col=0)
         # drop columns
         use_cols = list(range(8)) + [list(all_df.columns).index(('CODE', 'GIM', '10TEC', 'I3', lng, lat))]
-        all_df = all_df[all_df.columns[use_cols]]
+        all_df = all_df.iloc[:, use_cols]
         
-        # print(all_df.columns[-1])
-        # print(all_df.info())
-        return all_df
+        
     else: # ==TODO== check if global renamelist error
-        use_columns = list(range(1,9)) + list(range(11, 5122))
+        use_columns = list(range(8)) + list(range(10, 5122))
         # droplist = [0, 9, 10] + list(range(5122, 10235)) # 71*72 + 10 = 5122
         # renamelist = ['Year', 'Day', 'Hour', 'Kp index', 'R', 'Dst-index, nT', 'ap_index, nT', 'f10.7_index'] +\
         #                 [(lat*2.5, lng) for lat in range(35, -36, -1) for lng in range(-180, 180, 5)]
@@ -46,16 +44,24 @@ def read_csv_data(config, mode, DATAPATH):
         df_list = []
         print('Reading csv data...')
         for year in tqdm(years):
-            year_df = pd.read_csv(DATAPATH / Path(f'{year}.csv'), header=list(range(6)), usecols=use_columns)
+            year_df = pd.read_csv(DATAPATH / Path(f'{year}.csv'),\
+                header=list(range(6)), index_col=0)
             
+            year_df = year_df.iloc[:, use_cols]
             # rename dataframe
             # year_df.columns = renamelist
             
             df_list.append(year_df)
             
         all_df = pd.concat(df_list, axis=0)
-            
-        return all_df
+    
+    
+    # get truth_df
+    tmp = int(config['model']['input_time_step'])
+    truth_df = all_df.drop(columns='OMNIWeb').iloc[tmp:]
+    del tmp
+          
+    return all_df, truth_df
 
 def get_indices(config, all_df, seed, mode='train', p=0.8):
     """return indices of train, valid data

@@ -29,7 +29,7 @@ class SWGIMDataset(Dataset):
 
     def __len__(self):
         return int(self.reduce_ratio * len(self.data_indices)) if self.reduce else len(self.data_indices)
-        # ==ISSUE== Should start of data (input len < input_time_step) be included? (currently not included)
+        
         
     def __getitem__(self, idx):
         data_idx = self.data_indices[idx]
@@ -37,10 +37,12 @@ class SWGIMDataset(Dataset):
         space_data = self.df.iloc[data_idx:data_idx + self.input_time_step, 3:8]
         tec_data = self.df.iloc[data_idx:data_idx + self.input_time_step, 8:]
         try:
-            tec_truth = self.truth_df.iloc[data_idx, 3:] # TODO: global
+            tec_truth =\
+                self.truth_df.iloc[data_idx:data_idx+self.output_time_step, 3:] # TODO: global
         except:
-            print('error', idx, data_idx)
+            raise IndexError(f'Index error {idx}, {data_idx}')
             
-        return  torch.tensor(space_data.values), torch.tensor(tec_data.values),\
-                torch.tensor(tec_truth.values)
+        return  torch.tensor(space_data.values, dtype=torch.float32),\
+                torch.tensor(tec_data.values, dtype=torch.float32),\
+                torch.tensor(tec_truth.values, dtype=torch.float32)
 

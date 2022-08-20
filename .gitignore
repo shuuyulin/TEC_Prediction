@@ -3,3 +3,7 @@
 raw_data/SWGIM_year/*
 record/*
 **/*.csv
+prediction-result-presentation/
+**/*organiz*
+**/*.ipynb
+**/*.zip
