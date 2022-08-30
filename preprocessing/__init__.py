@@ -1,1 +1,1 @@
-from .normalization import initialize_normalization
+from .initialize import initialize_processer

@@ -1,12 +1,16 @@
 from .dataset import SWGIMDataset
 from torch.utils.data import DataLoader
-from .collate_fn import single_point_LSTM_formatter
+from .collate_fn import *
 def initialize_dataset(config, *args, **kwargs):
     dataset_type_list = {
         'SWGIMDataset': SWGIMDataset,
     }
     collate_fn_type_list = {
-        'single_point_LSTM' : single_point_LSTM_formatter,
+        'LSTM_TEC' : TEC_formatter,
+        'LSTM_TEC_2SW' : TEC_2SW_formatter,
+        'LSTM_Seq2Seq_TEC' : Seq2Seq_TEC_formatter,
+        'LSTM_Seq2Seq_TEC_2SW' : Seq2Seq_TEC_2SW_formatter,
+        'LSTM_Seq2Seq_TEC_5SW' : Seq2Seq_TEC_5SW_formatter,
     }
     
     dataset_type = config['data']['dataset_type']
@@ -24,9 +28,9 @@ def initialize_dataset(config, *args, **kwargs):
         print('collate_fn_type has not been defined in config file!')
         raise AttributeError
     
-    
     # print(len(dataset))
     # print(dataset[0])
+    # exit()
     
     task = kwargs['task']
     drop_last = True if task == 'train' else False

@@ -20,6 +20,7 @@ def initialize_criterion(config, *args, **kwargs):
 
 def initialize_optimizer(config, *args, **kwargs):
     optimizer_type_list = {
+        'SGD': optim.SGD,
         'AdamW': optim.AdamW,
         'Ranger': None, # ==TODO==
     }
@@ -30,6 +31,8 @@ def initialize_optimizer(config, *args, **kwargs):
         raise AttributeError
     elif optimizer_type == 'AdamW':
         optimizer = optimizer_type_list[optimizer_type](eps=1e-8, *args, **kwargs)
+    elif optimizer_type == 'SGD':
+        optimizer = optimizer_type_list[optimizer_type](momentum=0.9, lr=float(config['train']['lr']), *args, **kwargs)
     # elif
 
     return optimizer
@@ -45,7 +48,7 @@ def initialize_lr_scheduler(config, *args, **kwargs):
         print('lr_scheduler_type has not been defined in config file!')
         raise AttributeError
     elif lr_scheduler_type == 'ReduceLROnPlateau':
-        lr_scheduler = lr_scheduler_type_list[lr_scheduler_type](mode='min', patience=2,
+        lr_scheduler = lr_scheduler_type_list[lr_scheduler_type](mode='min', patience=4,
                         factor=0.1, min_lr=config.getfloat('train', 'lr')*1e-5, *args, **kwargs)
     elif lr_scheduler_type == 'CosineAnnealingLR':
         lr_scheduler = lr_scheduler_type_list[lr_scheduler_type](T_max= 2, eta_min=1e-65, *args, **kwargs)
