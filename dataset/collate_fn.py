@@ -9,7 +9,8 @@ def TEC_formatter(batch): # ignore space weather
     
     _, tec, truth = zip(*batch)
     
-    truth = truth[:,-1] #only take last tec
+    #only take last tec
+    truth = [t[-1] for t in truth]
     
     tec_lens = [len(t) for t in tec]
     
@@ -26,6 +27,9 @@ def TEC_formatter(batch): # ignore space weather
 def TEC_2SW_formatter(batch): # with space weather
     
     SW, tec, truth = zip(*batch)
+    
+    #only take last tec
+    truth = [t[-1] for t in truth]
     
     # TEC_2SW model only takes F10.7 & ap index
     SW = [data[:,[4, 3]] for data in SW]
@@ -54,4 +58,28 @@ def Seq2Seq_TEC_formatter(batch): # ignore space weather
     return {
         'x':tec,
         'y':truth,
+    }
+
+def Seq2Seq_TEC_2SW_formatter(batch): # ignore space weather
+    # print(batch)
+    sw, tec, truth = zip(*batch)
+    
+    sw = [data[:,[4, 3]] for data in sw]
+    x = torch.stack([torch.cat((a,b), dim=1) for a, b in zip(sw, tec)])
+    y = torch.stack(truth)
+    
+    return {        
+        'x':x,
+        'y':y,
+    }
+def Seq2Seq_TEC_5SW_formatter(batch): # ignore space weather
+    # print(batch)
+    sw, tec, truth = zip(*batch)
+    
+    x = torch.stack([torch.cat((a,b), dim=1) for a, b in zip(sw, tec)])
+    y = torch.stack(truth)
+    
+    return {        
+        'x':x,
+        'y':y,
     }

@@ -1,6 +1,6 @@
 from .dataset import SWGIMDataset
 from torch.utils.data import DataLoader
-from .collate_fn import TEC_formatter, TEC_2SW_formatter, Seq2Seq_TEC_formatter
+from .collate_fn import *
 def initialize_dataset(config, *args, **kwargs):
     dataset_type_list = {
         'SWGIMDataset': SWGIMDataset,
@@ -9,6 +9,8 @@ def initialize_dataset(config, *args, **kwargs):
         'LSTM_TEC' : TEC_formatter,
         'LSTM_TEC_2SW' : TEC_2SW_formatter,
         'LSTM_Seq2Seq_TEC' : Seq2Seq_TEC_formatter,
+        'LSTM_Seq2Seq_TEC_2SW' : Seq2Seq_TEC_2SW_formatter,
+        'LSTM_Seq2Seq_TEC_5SW' : Seq2Seq_TEC_5SW_formatter,
     }
     
     dataset_type = config['data']['dataset_type']

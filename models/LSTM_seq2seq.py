@@ -63,7 +63,7 @@ class Encoder(nn.Module):
         x: input batch data, size: [batch size, sequence len, feature size]
         """
         embedded = self.dropout(F.relu(self.embedding(x)))
-        output, (hidden, cell) = self.lstm(embedded)
+        _, (hidden, cell) = self.lstm(embedded)
         return hidden, cell
 
 class Decoder(nn.Module):

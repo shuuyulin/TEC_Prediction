@@ -7,11 +7,15 @@ def initialize_model(config, arg, *args, **kwargs):
         'LSTM_TEC':LSTMTEC,
         'LSTM_TEC_2SW':LSTMTEC,
         'LSTM_Seq2Seq_TEC': LSTM_Seq2Seq,
+        'LSTM_Seq2Seq_TEC_2SW' : LSTM_Seq2Seq,
+        'LSTM_Seq2Seq_TEC_5SW' : LSTM_Seq2Seq,
     }
     model_ft_list = {
         'LSTM_TEC' : 1,
         'LSTM_TEC_2SW' : 3,
         'LSTM_Seq2Seq_TEC' : 1,
+        'LSTM_Seq2Seq_TEC_2SW' : 3,
+        'LSTM_Seq2Seq_TEC_5SW' : 6,
     }
     
     model_name = config['model']['model_name']

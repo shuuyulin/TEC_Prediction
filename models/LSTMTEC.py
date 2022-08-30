@@ -26,4 +26,5 @@ class LSTMTEC(nn.Module):
         # ==QUESTION== need activation function?
         pred = self.fc(lstm_output[:,-1,:])
 
+        
         return pred, self.criterion(pred.float(), truth_pad.float()) if self.criterion else pred
