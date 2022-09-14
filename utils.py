@@ -25,26 +25,30 @@ def setSeed(seed=31):
 def read_csv_data(config, mode, DATAPATH):
     years = [int(y) for y in config['data'][f'{mode}_year'].split(',')]
     
+    pred_range = config['global']['predict_range']
     # if not global drop other location
-    if config['global']['predict_range'] != 'global':
+    if pred_range not in ['global', 'globalSH']:
         lng, lat = config2strlist(config['global']['predict_range'])
         
         all_df = pd.read_csv(DATAPATH / Path(f'single_point_{mode}.csv'), header=list(range(6)), index_col=0)
         # drop columns
         use_cols = list(range(8)) + [list(all_df.columns).index(('CODE', 'GIM', '10TEC', 'I3', lng, lat))]
-        all_df = all_df.iloc[:, use_cols]
+        # all_df = all_df.iloc[:, use_cols]
+        all_df = all_df.loc[all_df.columns[:8] + [('CODE', 'GIM', '10TEC', 'I3', lng, lat)]]
         
-        
-    else: # ==TODO== check if global renamelist error
-        use_columns = list(range(8)) + list(range(10, 5122))
+    
+    else:
+        use_cols = list(range(8))
+        use_cols += list(range(10, 10 + 71*72)) if pred_range == 'global'\
+            else list(range(10 + 71*72*2, 10 + 71*72*2 + 256))
         # droplist = [0, 9, 10] + list(range(5122, 10235)) # 71*72 + 10 = 5122
-        # renamelist = ['Year', 'Day', 'Hour', 'Kp index', 'R', 'Dst-index, nT', 'ap_index, nT', 'f10.7_index'] +\
+        # renamelist = ['year', 'DOY', 'hour', 'Kp index', 'R', 'Dst-index, nT', 'ap_index, nT', 'f10.7_index'] +\
         #                 [(lat*2.5, lng) for lat in range(35, -36, -1) for lng in range(-180, 180, 5)]
 
         df_list = []
         print('Reading csv data...')
         for year in tqdm(years):
-            year_df = pd.read_csv(DATAPATH / Path(f'{year}.csv'),\
+            year_df = pd.read_csv(DATAPATH / Path(f'raw_data/SWGIM_year/{year}.csv'),\
                 header=list(range(6)), index_col=0)
             
             year_df = year_df.iloc[:, use_cols]
@@ -53,18 +57,18 @@ def read_csv_data(config, mode, DATAPATH):
             
             df_list.append(year_df)
             
-        all_df = pd.concat(df_list, axis=0)
+        all_df = pd.concat(df_list, axis=0).reset_index(drop=True)
     
     
     # get truth_df
     tmp = int(config['model']['input_time_step'])
-    truth_df = all_df.drop(columns='OMNIWeb').iloc[tmp:]
+    truth_df = all_df.drop(columns='OMNIWeb').iloc[tmp:].reset_index(drop=True)
     del tmp
           
     return all_df, truth_df
 
 def get_indices(config, all_df, seed, mode='train', p=0.8):
-    """return indices of train, valid data
+    """return indices of train, valid data / test data
 
     Args:
         all_df (Dataframe): data to be splited

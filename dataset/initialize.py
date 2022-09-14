@@ -11,6 +11,7 @@ def initialize_dataset(config, *args, **kwargs):
         'LSTM_Seq2Seq_TEC' : Seq2Seq_TEC_formatter,
         'LSTM_Seq2Seq_TEC_2SW' : Seq2Seq_TEC_2SW_formatter,
         'LSTM_Seq2Seq_TEC_5SW' : Seq2Seq_TEC_5SW_formatter,
+        'Transformer_GTEC' : GTEC_formatter,
     }
     
     dataset_type = config['data']['dataset_type']
@@ -29,7 +30,9 @@ def initialize_dataset(config, *args, **kwargs):
         raise AttributeError
     
     # print(len(dataset))
-    # print(dataset[0])
+    # print(dataset[10][0].shape)
+    # print(dataset[10][1].shape)
+    # print(dataset[10][2].shape)
     # exit()
     
     task = kwargs['task']

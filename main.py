@@ -9,6 +9,7 @@ from preprocessing import initialize_processer
 from dataset import initialize_dataset
 from training_tools import initialize_criterion, initialize_optimizer, initialize_lr_scheduler
 from models import initialize_model
+from output import exporting
 import json
 
 def get_parser():
@@ -41,20 +42,22 @@ def main():
     # read csv data
     df, truth_df = read_csv_data(config, args.mode, DATAPATH)
     
-    print(truth_df.info())
-    
-    # print(df.head())
-    print(df.info())
-    
     # preprocessing
     processer = initialize_processer(config)
     
-    df = processer.preprocess(df)
+    if config['preprocess']['normalization_type'] != 'None':
+        df = processer.preprocess(df)
+    else: # no normalization
+        config['preprocess']['predict_norm'] = 'False'
+        
     if config['preprocess']['predict_norm'] == 'True':
         truth_df = processer.preprocess(truth_df)
         
+    print(df.info())
+    print(truth_df.info())
     # print(df.head())
     # print(truth_df.head())
+    # exit()
     
     # get dataloader
     if args.mode == 'train':
@@ -74,6 +77,8 @@ def main():
     # for idx, data in enumerate(train_loader):
     #     if idx <= 0:
     #         print(f'{idx} {data}')
+    #         for k in data:
+    #             print(k, data[k].shape)
     
     # exit()
     
@@ -111,20 +116,14 @@ def main():
         loss, pred = eval_one(config, model, test_loader, 'Test')
         
         print(f'test unpostprocessed loss: {loss}')
+        # np.save(open('predict.npy', 'wb'), pred)
+        # pred = np.load(open('predict.npy', 'rb'))
+        # print(pred[0])
+        # print(np.shape(pred))
         
-        tmp = max(int(config['data']['reserved']), int(config['model']['input_time_step']) + int(config['model']['output_time_step'])-1)
-        pred = np.concatenate([[None]*tmp, pred], axis=0)        
+        exporting(config, pred, df, processer, RECORDPATH)
         
-        # TODO: change model name
-        pred_df = df.copy().rename(columns={'CODE':'LSTM'})
-        pred_df[pred_df.columns[-1]] = pred
-        
-        # post processing
-        if config['preprocess']['predict_norm'] == 'True':
-            pred_df = processer.postprocess(pred_df) # Possible error: np.nan denormed
-            
-        pred_df.to_csv(RECORDPATH / Path('prediction.csv'))
-        
+
 def train_one(config, model, dataloader, optimizer, scheduler=None):
     model.train()
     totalloss = 0
@@ -160,13 +159,14 @@ def eval_one(config, model, dataloader, mode='Valid'):
                 output, loss = model(**data) #output shape(batch, output_step or 1 , 1)
                 
                 # print(output.shape)
-                output_list.append(output.detach().cpu().view(-1).numpy())
+                output_list.append(output.detach().cpu().numpy())
                 
                 nowloss = loss.item()
                 totalloss += nowloss
                 tqdm_loader.set_postfix(loss=f'{nowloss:.7f}', avgloss=f'{totalloss/(idx+1):.7f}')
-    tec_pred_list = np.concatenate(output_list, axis=0)
-        
+    tec_pred_list = np.concatenate(output_list, axis=0) # len, 71*72
+    # tec_pred_list = np.array(output_list)
+    
     return totalloss/len(tqdm_loader), tec_pred_list
 
 if __name__ == '__main__':

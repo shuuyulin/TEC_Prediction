@@ -1,32 +1,39 @@
-import torch.nn as nn
-import torch
-from collections import OrderedDict
+import pandas as pd
+import numpy as np
 
-def setSeed(seed=31):
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed(seed)
-    torch.backends.cudnn.deterministic = True
-setSeed(31)    
+# rc = pd.DataFrame([],columns=[1,2,3], index=list(range(6)))
+# a = np.array([[1,2,3],[4,5,6]])
+# print(a)
+# a = np.concatenate([[[None]*a.shape[1]]*4, a],axis=0)
+# print(a)
+# print(rc)
+# rc.iloc[:] = a
+# rc = [[None]*4]*5
 
-class GetLSTMOutput(nn.Module):
-    def forward(self, x):
-        out, _ = x
-        return out
-    
-input_size, output_size = 10, 2
-hidden_size = 3
-seq_len = 3
-rnn1 = nn.LSTM(input_size, hidden_size, 2)
+# print(rc)
+# print(f'{12345.6789:7.7f}')
+# pred = np.load(open('predict.npy', 'rb'), allow_pickle=True)
+# print(pred[0])
+# print(np.shape(pred))
+# Python program explaining
+# round_() function
+import numpy as np
 
-rnn2 = nn.Sequential(OrderedDict([
-    ('LSTM1', nn.LSTM(input_size, hidden_size, 1)),
-    ('out', GetLSTMOutput()),
-    ('LSTM2', nn.LSTM(hidden_size, hidden_size, 1)),
-    # ('out', GetLSTMOutput()),
-]))
+in_array = [.5, 1.5, 2.5, 3.5, 4.5, 0.6]
+print ("Input array : \n", in_array)
 
-input = torch.randn(seq_len, 5, input_size)
-# print(input)
-print(rnn1(input)[0]) # get output
-print(rnn2(input)[0]) # get output
+round_off_values = np.round(in_array)
+print ("\nRounded values : \n", round_off_values)
 
+
+in_array = [.53, 1.54, .71]
+print ("\nInput array : \n", in_array)
+
+round_off_values = np.round_(in_array)
+print ("\nRounded values : \n", round_off_values)
+
+in_array = [.5538, 1.33354, .71445]
+print ("\nInput array : \n", in_array)
+
+round_off_values = np.round_(in_array, decimals = 1)
+print ("\nRounded values : \n", round_off_values)
