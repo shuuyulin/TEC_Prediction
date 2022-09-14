@@ -17,7 +17,7 @@ class SWGIMDataset(Dataset):
         self.input_time_step = config.getint('model', 'input_time_step')
         self.output_time_step = config.getint('model', 'output_time_step')
         self.predict_range = config['global']['predict_range']
-        if self.predict_range != 'global':
+        if self.predict_range not in ['global', 'globalSH']:
             self.predict_range = config2intlist(self.predict_range)
         
         if task == 'train':
@@ -30,7 +30,6 @@ class SWGIMDataset(Dataset):
     def __len__(self):
         return int(self.reduce_ratio * len(self.data_indices)) if self.reduce else len(self.data_indices)
         
-        
     def __getitem__(self, idx):
         data_idx = self.data_indices[idx]
 
@@ -38,7 +37,7 @@ class SWGIMDataset(Dataset):
         tec_data = self.df.iloc[data_idx:data_idx + self.input_time_step, 8:]
         try:
             tec_truth =\
-                self.truth_df.iloc[data_idx:data_idx+self.output_time_step, 3:] # TODO: global
+                self.truth_df.iloc[data_idx:data_idx+self.output_time_step, 3:]
         except:
             raise IndexError(f'Index error {idx}, {data_idx}')
             

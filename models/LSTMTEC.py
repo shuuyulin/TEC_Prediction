@@ -11,10 +11,10 @@ class LSTMTEC(nn.Module):
         self.input_time_step = config.getint('model', 'input_time_step')
         self.output_time_step = config.getint('model', 'output_time_step')
         self.hidden_size = config.getint('model', 'hidden_size')
-        self.lstm_layer = config.getint('model', 'lstm_layer')
-        self.dropout = config.getfloat('model', 'dropout') if self.lstm_layer > 1 else 0
+        self.num_layer = config.getint('model', 'num_layer')
+        self.dropout = config.getfloat('model', 'dropout') if self.num_layer > 1 else 0
         self.lstm = nn.LSTM(input_size=feature_dim, hidden_size=self.hidden_size,
-                            num_layers=self.lstm_layer, dropout=self.dropout)
+                            num_layers=self.num_layer, dropout=self.dropout)
         self.fc = nn.Linear(in_features=self.hidden_size, out_features=1) # regression
 
     def forward(self, feature_packed, truth_pad):
