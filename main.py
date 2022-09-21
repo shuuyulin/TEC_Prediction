@@ -118,8 +118,6 @@ def main():
         print(f'test unpostprocessed loss: {loss}')
         # np.save(open('predict.npy', 'wb'), pred)
         # pred = np.load(open('predict.npy', 'rb'))
-        # print(pred[0])
-        # print(np.shape(pred))
         
         exporting(config, pred, df, processer, RECORDPATH)
         

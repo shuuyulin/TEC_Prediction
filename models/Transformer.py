@@ -19,9 +19,10 @@ class Transformer(nn.Module):
         
         self.embedding = nn.Linear(feature_dim, self.hidden_size)
         self.pos_encoder = PositionalEncoding(d_model=self.hidden_size)
-        self.encoder_layer = nn.TransformerEncoderLayer(d_model=self.hidden_size, nhead=8,\
-                            dropout=self.dropout, norm_first=True, batch_first=True)
-        self.transformer_encoder = nn.TransformerEncoder(self.encoder_layer, num_layers=self.num_layer)
+        self.transformer_model = nn.Transformer(d_model=self.hidden_size, nhead=8,\
+                                                num_encoder_layers=self.num_layer,\
+                                                num_decoder_layers=self.num_layer,\
+                                                dropout=self.dropout, batch_first=True)
         self.fc = nn.Linear(self.hidden_size, 71*72) # global prediction
         self.init_weights()
     
@@ -38,23 +39,26 @@ class Transformer(nn.Module):
         return mask
 
     def forward(self, x, y):
-        # x: (batch_size, input_d)
-        embedded = self.embedding(x)
-        pos_encoder_out = self.pos_encoder(embedded)
-        mask = self._generate_square_subsequent_mask(pos_encoder_out.size(1)).to(self.device)
-        trans_output = self.transformer_encoder(pos_encoder_out, mask) # batch_size, seq_len, hidden_size
+        # x: (batch_size, input_time_step, feature_dim)
+        # y: (batch_size, output_time_step, feature_dim)
+        x_embedded = self.embedding(x)
+        y_embedded = self.embedding(y)
         
-        fc_out = F.relu(self.fc(trans_output)) # batch_size, seq_len, 71*72
+        x_pos_encoder_out = self.pos_encoder(x_embedded)
+        y_pos_encoder_out = self.pos_encoder(y_embedded)
         
-        # mean pooling
-        pred = torch.mean(fc_out, dim=1) # batch_size, 71*72
+        trans_output = self.transformer_model(src=x_pos_encoder_out, tgt=y_pos_encoder_out)
+        # trans_output: (batch_size, output_time_step, hidden_size)
         
-        return pred, self.criterion(pred.float(), y.float())\
-            if self.criterion != None else pred
+        fc_out = self.fc(trans_output) # F.relu()
+        # fc_out: (batch_size, output_time_step, 71*72)
+        
+        return fc_out[:,-1], self.criterion(fc_out.float(), y.float())\
+                    if self.criterion != None else fc_out[:,-1]
     
 class PositionalEncoding(nn.Module):
 
-    def __init__(self, d_model, max_len=5000):
+    def __init__(self, d_model, max_len=100):
         super(PositionalEncoding, self).__init__()       
         pe = torch.zeros(max_len, d_model)
         position = torch.arange(0, max_len, dtype=torch.float).unsqueeze(1)

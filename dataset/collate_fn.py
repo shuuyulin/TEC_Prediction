@@ -6,6 +6,21 @@ from torch.nn.utils.rnn import pad_sequence, pack_padded_sequence
 import torch
 
 def TEC_formatter(batch): # ignore space weather
+    # print(batch)
+    _, tec, truth = zip(*batch)
+    
+    #only take last tec
+    truth = [t[-1] for t in truth]
+    
+    x = torch.stack(tec)
+    y = torch.stack(truth)
+    
+    return {
+        'x':x,
+        'y':y,
+    }
+
+def LSTM_TEC_formatter(batch): # ignore space weather
     
     _, tec, truth = zip(*batch)
     
@@ -24,7 +39,7 @@ def TEC_formatter(batch): # ignore space weather
         'truth_pad':truth_pad,
     }
 
-def TEC_2SW_formatter(batch): # with space weather
+def LSTM_TEC_2SW_formatter(batch): # with space weather
     
     SW, tec, truth = zip(*batch)
     
@@ -60,7 +75,7 @@ def Seq2Seq_TEC_formatter(batch): # ignore space weather
         'y':truth,
     }
 
-def Seq2Seq_TEC_2SW_formatter(batch): # ignore space weather
+def Seq2Seq_TEC_2SW_formatter(batch): # with space weather
     # print(batch)
     sw, tec, truth = zip(*batch)
     
@@ -73,7 +88,7 @@ def Seq2Seq_TEC_2SW_formatter(batch): # ignore space weather
         'y':y,
     }
     
-def Seq2Seq_TEC_5SW_formatter(batch): # ignore space weather
+def Seq2Seq_TEC_5SW_formatter(batch): # with space weather
     # print(batch)
     sw, tec, truth = zip(*batch)
     
@@ -84,19 +99,4 @@ def Seq2Seq_TEC_5SW_formatter(batch): # ignore space weather
         'x':x,
         'y':y,
     }
-    
-    
-def GTEC_formatter(batch):
-    # print(batch)
-    _, tec, truth = zip(*batch)
-    
-    #only take last tec
-    truth = [t[-1] for t in truth]
-    
-    x = torch.stack(tec)
-    y = torch.stack(truth)
-    
-    return {
-        'x':x,
-        'y':y,
-    }
+        

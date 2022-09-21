@@ -3,9 +3,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 import math
 
-class Transformer(nn.Module):
+class Transformer_encoder(nn.Module):
     def __init__(self, config, feature_dim, criterion=None):
-        super(Transformer, self).__init__()
+        super(Transformer_encoder, self).__init__()
         self.config = config
         self.feature_dim = feature_dim
         self.criterion = criterion
