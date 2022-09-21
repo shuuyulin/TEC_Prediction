@@ -19,7 +19,7 @@ python3 main.py --config [config_file_path] --mode [mode train/test] --record [r
 - models
   - initialize model
 - output
-  - ignore it  :)
+  - output data to SWGIM format  
 
 - preprocessing
   - initialize normalization
