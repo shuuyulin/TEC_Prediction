@@ -4,6 +4,7 @@ from .Transformer_encoder import Transformer_encoder
 from .Transformer import Transformer
 import torch
 from pathlib import Path
+
 def initialize_model(config, arg, *args, **kwargs):
     model_list = {
         'LSTM_TEC':LSTMTEC,
@@ -28,7 +29,11 @@ def initialize_model(config, arg, *args, **kwargs):
     feature_dim = model_ft_list[model_name]
     
     if arg.mode == 'train':
-        return model_list[model_name](config, feature_dim, *args, **kwargs)
+        model = model_list[model_name](config, feature_dim, *args, **kwargs)
+        if arg.checkpoint is not None:
+            print(f'Using checkpoint {arg.checkpoint}')
+            model.load_state_dict(torch.load(arg.checkpoint))
+        return model
     else: # test
         model = model_list[model_name](config, feature_dim, *args, **kwargs)
         model.load_state_dict(torch.load(Path(arg.record) / 'best_model.pth'))

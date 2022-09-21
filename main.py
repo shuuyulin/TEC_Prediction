@@ -10,14 +10,13 @@ from dataset import initialize_dataset
 from training_tools import initialize_criterion, initialize_optimizer, initialize_lr_scheduler
 from models import initialize_model
 from output import exporting
-import json
 
 def get_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument('-c', '--config', type=str, default='config.ini')
     parser.add_argument('-m', '--mode', type=str, default='train')
     parser.add_argument('-r','--record', type=str) # record path
-    
+    parser.add_argument('-k','--checkpoint', type=str) # continue training, ignore in testing
     return parser
 
 def main():

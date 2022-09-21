@@ -11,11 +11,11 @@ class Transformer(nn.Module):
         self.criterion = criterion
         
         self.device = config['global']['device']
-        self.input_time_step = config.getint('model', 'input_time_step')
-        self.output_time_step = config.getint('model', 'output_time_step')
-        self.hidden_size = config.getint('model', 'hidden_size')
-        self.num_layer = config.getint('model', 'num_layer')
-        self.dropout = config.getfloat('model', 'dropout')
+        self.input_time_step = int(config['model']['input_time_step'])
+        self.output_time_step = int(config['model']['output_time_step'])
+        self.hidden_size = int(config['model']['hidden_size'])
+        self.num_layer = int(config['model']['num_layer'])
+        self.dropout = float(config['model']['dropout'])
         
         self.embedding = nn.Linear(feature_dim, self.hidden_size)
         self.pos_encoder = PositionalEncoding(d_model=self.hidden_size)
@@ -44,10 +44,14 @@ class Transformer(nn.Module):
         x_embedded = self.embedding(x)
         y_embedded = self.embedding(y)
         
+        # x_mask = self._generate_square_subsequent_mask(x_embedded.size(1))
+        y_mask = self._generate_square_subsequent_mask(y_embedded.size(1)).to(self.device)
+        
         x_pos_encoder_out = self.pos_encoder(x_embedded)
         y_pos_encoder_out = self.pos_encoder(y_embedded)
         
-        trans_output = self.transformer_model(src=x_pos_encoder_out, tgt=y_pos_encoder_out)
+        trans_output = self.transformer_model(src=x_pos_encoder_out, tgt=y_pos_encoder_out,\
+                                            tgt_mask=y_mask)
         # trans_output: (batch_size, output_time_step, hidden_size)
         
         fc_out = self.fc(trans_output) # F.relu()
