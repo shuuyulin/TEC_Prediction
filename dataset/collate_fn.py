@@ -99,4 +99,20 @@ def Seq2Seq_TEC_5SW_formatter(batch): # with space weather
         'x':x,
         'y':y,
     }
+      
         
+# def Transformer_TEC_formatter(batch): # ignore space weather
+#     # print(batch)
+#     _, tec, truth = zip(*batch)
+    
+#     bs, fd = tec.shape[0], tec.shape[2]
+#     BOS = torch.full((bs, fd), 0)
+#     tec = torch.stack(tec)
+#     truth = torch.stack(truth)
+    
+#     encoder_input = tec
+#     decoder_input = torch.cat((BOS, ))
+#     return {
+#         'x':tec,
+#         'y':truth,
+#     }

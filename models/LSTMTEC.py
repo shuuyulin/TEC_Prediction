@@ -2,7 +2,7 @@ import torch.nn as nn
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
 class LSTMTEC(nn.Module):
-    def __init__(self, config, feature_dim, criterion=None):
+    def __init__(self, config, arg, feature_dim, criterion=None):
         super().__init__()
         self.config = config
         self.feature_dim = feature_dim

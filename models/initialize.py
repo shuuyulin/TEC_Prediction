@@ -29,13 +29,13 @@ def initialize_model(config, arg, *args, **kwargs):
     feature_dim = model_ft_list[model_name]
     
     if arg.mode == 'train':
-        model = model_list[model_name](config, feature_dim, *args, **kwargs)
+        model = model_list[model_name](config, arg, feature_dim, *args, **kwargs)
         if arg.checkpoint is not None:
             print(f'Using checkpoint {arg.checkpoint}')
             model.load_state_dict(torch.load(arg.checkpoint))
         return model
     else: # test
-        model = model_list[model_name](config, feature_dim, *args, **kwargs)
+        model = model_list[model_name](config, arg, feature_dim, *args, **kwargs)
         model.load_state_dict(torch.load(Path(arg.record) / 'best_model.pth'))
         return model
     

@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class LSTM_Seq2Seq(nn.Module):
-    def __init__(self, config, feature_dim, criterion=None):
+    def __init__(self, config, arg, feature_dim, criterion=None):
         super().__init__()
         self.config = config
         self.feature_dim = feature_dim
