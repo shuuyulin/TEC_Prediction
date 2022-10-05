@@ -41,6 +41,7 @@ def initialize_lr_scheduler(config, *args, **kwargs):
     lr_scheduler_type_list = {
         'ReduceLROnPlateau': optim.lr_scheduler.ReduceLROnPlateau,
         'CosineAnnealingLR':optim.lr_scheduler.CosineAnnealingLR,
+        'OneCycleLR':optim.lr_scheduler.OneCycleLR,
     }
     lr_scheduler_type = config['train']['lr_scheduler']
     
@@ -52,6 +53,8 @@ def initialize_lr_scheduler(config, *args, **kwargs):
                         factor=0.1, min_lr=config.getfloat('train', 'lr')*1e-5, *args, **kwargs)
     elif lr_scheduler_type == 'CosineAnnealingLR':
         lr_scheduler = lr_scheduler_type_list[lr_scheduler_type](T_max= 2, eta_min=1e-65, *args, **kwargs)
-        
+    elif lr_scheduler_type == 'OneCycleLR':
+        # lr_scheduler = lr_scheduler_type_list[lr_scheduler_type](, *args, **kwargs)
+        pass
     return lr_scheduler
 

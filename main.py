@@ -5,6 +5,7 @@ import argparse
 import configparser
 from pathlib import Path
 from utils import *
+from tqdm.auto import tqdm
 from preprocessing import initialize_processer
 from dataset import initialize_dataset
 from training_tools import initialize_criterion, initialize_optimizer, initialize_lr_scheduler

@@ -47,7 +47,8 @@ class Transformer_encoder(nn.Module):
         fc_out = F.relu(self.fc(trans_output)) # batch_size, seq_len, 71*72
         
         # mean pooling
-        pred = torch.mean(fc_out, dim=1) # batch_size, 71*72
+        # pred = torch.mean(fc_out, dim=1) # batch_size, 71*72
+        pred = fc_out[:,-1] # batch_size, 71*72
         
         return pred, self.criterion(pred.float(), y.float())\
             if self.criterion != None else pred
