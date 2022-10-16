@@ -1,8 +1,7 @@
 import torch
 import torch.nn as nn
+import pandas as pd
 
-transformer_model = nn.Transformer(nhead=16, num_encoder_layers=12)
-src = torch.rand((10, 32, 512))
-tgt = torch.rand((20, 32, 512))
-out = transformer_model(src, tgt)
-print(out.shape)
+df = pd.read_csv('./record/39/prediction.csv', header=list(range(6)), index_col=0)
+
+print(df.head())

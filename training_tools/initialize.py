@@ -37,7 +37,7 @@ def initialize_optimizer(config, *args, **kwargs):
 
     return optimizer
 
-def initialize_lr_scheduler(config, *args, **kwargs):
+def initialize_lr_scheduler(config, steps_pep, *args, **kwargs):
     lr_scheduler_type_list = {
         'ReduceLROnPlateau': optim.lr_scheduler.ReduceLROnPlateau,
         'CosineAnnealingLR':optim.lr_scheduler.CosineAnnealingLR,
@@ -49,12 +49,14 @@ def initialize_lr_scheduler(config, *args, **kwargs):
         print('lr_scheduler_type has not been defined in config file!')
         raise AttributeError
     elif lr_scheduler_type == 'ReduceLROnPlateau':
-        lr_scheduler = lr_scheduler_type_list[lr_scheduler_type](mode='min', patience=4,
+        lr_scheduler = lr_scheduler_type_list[lr_scheduler_type](mode='min', patience=2,
                         factor=0.1, min_lr=config.getfloat('train', 'lr')*1e-5, *args, **kwargs)
     elif lr_scheduler_type == 'CosineAnnealingLR':
         lr_scheduler = lr_scheduler_type_list[lr_scheduler_type](T_max= 2, eta_min=1e-65, *args, **kwargs)
     elif lr_scheduler_type == 'OneCycleLR':
-        # lr_scheduler = lr_scheduler_type_list[lr_scheduler_type](, *args, **kwargs)
-        pass
+        ep = int(config['train']['epoch'])
+        lr_scheduler = lr_scheduler_type_list[lr_scheduler_type](max_lr=0.01, epochs=ep,\
+                                                    steps_per_epoch=steps_pep, *args, **kwargs)
+        
     return lr_scheduler
 

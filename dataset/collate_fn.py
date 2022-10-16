@@ -1,19 +1,34 @@
 # Formatter is a funtion for dataloader.
 # It drops and renames dataframe columns.
-#
+# TODO: fix LSTM formatter
 from utils import *
 from torch.nn.utils.rnn import pad_sequence, pack_padded_sequence
 import torch
 
 def TEC_formatter(batch): # ignore space weather
     # print(batch)
+    x, y = zip(*batch)
+    
+    #only take last tec
+    y = [t[-1] for t in y]
+    
+    x = torch.stack(x)
+    y = torch.stack(y)
+    
+    return {
+        'x':x,
+        'y':y,
+    }
+    
+def TEC_Lat_formatter(batch):
+    
     _, tec, truth = zip(*batch)
     
     #only take last tec
     truth = [t[-1] for t in truth]
     
-    x = torch.stack(tec)
-    y = torch.stack(truth)
+    x = torch.stack(tec).view((x.shape[0],72, -1)) #batch, 72, 71*n_hours
+    y = torch.stack(truth).view((x.shape[0],72, -1)) #batch, 72, 71
     
     return {
         'x':x,
@@ -22,7 +37,7 @@ def TEC_formatter(batch): # ignore space weather
 
 def LSTM_TEC_formatter(batch): # ignore space weather
     
-    _, tec, truth = zip(*batch)
+    tec, truth = zip(*batch)
     
     #only take last tec
     truth = [t[-1] for t in truth]
@@ -65,14 +80,14 @@ def LSTM_TEC_2SW_formatter(batch): # with space weather
     
 def Seq2Seq_TEC_formatter(batch): # ignore space weather
     # print(batch)
-    _, tec, truth = zip(*batch)
+    x, y = zip(*batch)
     
-    tec = torch.stack(tec)
-    truth = torch.stack(truth)
+    x = torch.stack(x)
+    y = torch.stack(y)
     
     return {
-        'x':tec,
-        'y':truth,
+        'x':x,
+        'y':y,
     }
 
 def Seq2Seq_TEC_2SW_formatter(batch): # with space weather
@@ -100,19 +115,3 @@ def Seq2Seq_TEC_5SW_formatter(batch): # with space weather
         'y':y,
     }
       
-        
-# def Transformer_TEC_formatter(batch): # ignore space weather
-#     # print(batch)
-#     _, tec, truth = zip(*batch)
-    
-#     bs, fd = tec.shape[0], tec.shape[2]
-#     BOS = torch.full((bs, fd), 0)
-#     tec = torch.stack(tec)
-#     truth = torch.stack(truth)
-    
-#     encoder_input = tec
-#     decoder_input = torch.cat((BOS, ))
-#     return {
-#         'x':tec,
-#         'y':truth,
-#     }

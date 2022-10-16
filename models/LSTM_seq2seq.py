@@ -3,10 +3,11 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class LSTM_Seq2Seq(nn.Module):
-    def __init__(self, config, arg, feature_dim, criterion=None):
+    def __init__(self, config, arg, input_dim, output_dim, criterion=None):
         super().__init__()
         self.config = config
-        self.feature_dim = feature_dim
+        self.input_dim = input_dim
+        self.output_dim = output_dim
         self.criterion = criterion
         
         self.device = config['global']['device']
@@ -17,8 +18,8 @@ class LSTM_Seq2Seq(nn.Module):
         self.num_layer = config.getint('model', 'num_layer')
         self.dropout = config.getfloat('model', 'dropout') if self.num_layer > 1 else 0
         
-        self.encoder = Encoder(self.feature_dim, self.embedding_size, self.hidden_size, self.num_layer, self.dropout)
-        self.decoder = Decoder(self.feature_dim, self.embedding_size, self.hidden_size, self.num_layer, self.dropout)
+        self.encoder = Encoder(self.input_dim, self.output_dim, self.embedding_size, self.hidden_size, self.num_layer, self.dropout)
+        self.decoder = Decoder(self.input_dim, self.output_dim, self.embedding_size, self.hidden_size, self.num_layer, self.dropout)
 
     def forward(self, x, y):
         
@@ -49,10 +50,10 @@ class LSTM_Seq2Seq(nn.Module):
             # only takes last output time step
 
 class Encoder(nn.Module):
-    def __init__(self, feature_dim, embedding_size, hidden_size, num_layer, dropout):
+    def __init__(self, input_dim, output_dim, embedding_size, hidden_size, num_layer, dropout):
         super().__init__()
         
-        self.embedding = nn.Linear(in_features=feature_dim, out_features=embedding_size)
+        self.embedding = nn.Linear(in_features=input_dim, out_features=embedding_size)
         self.dropout = nn.Dropout(dropout)
         self.lstm = nn.LSTM(input_size=embedding_size, hidden_size=hidden_size,
                             num_layers=num_layer, batch_first=True, dropout=dropout)
@@ -66,7 +67,7 @@ class Encoder(nn.Module):
         return hidden, cell
 
 class Decoder(nn.Module):
-    def __init__(self, feature_dim, embedding_size, hidden_size, num_layer, dropout):
+    def __init__(self, input_dim, output_dim, embedding_size, hidden_size, num_layer, dropout):
         super().__init__()
         self.embedding = nn.Linear(in_features=1, out_features=embedding_size)
         # only take TEC feature but SW feature
@@ -74,7 +75,7 @@ class Decoder(nn.Module):
         self.dropout = nn.Dropout(dropout)
         self.lstm = nn.LSTM(input_size=embedding_size, hidden_size=hidden_size,
                             num_layers=num_layer, batch_first=True, dropout=dropout)
-        self.fc = nn.Linear(in_features=hidden_size, out_features=1) # regression
+        self.fc = nn.Linear(in_features=hidden_size, out_features=output_dim) # regression
 
     def forward(self, x, hidden, cell):
         

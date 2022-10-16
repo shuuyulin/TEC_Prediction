@@ -4,11 +4,12 @@ import torch.nn.functional as F
 import math
 
 class Transformer(nn.Module):
-    def __init__(self, config, arg, feature_dim, criterion=None):
+    def __init__(self, config, arg, input_dim, output_dim, criterion=None):
         super(Transformer, self).__init__()
         self.config = config
         self.arg = arg
-        self.feature_dim = feature_dim
+        self.input_dim = input_dim
+        self.output_dim = output_dim
         self.criterion = criterion
         
         self.device = config['global']['device']
@@ -18,19 +19,19 @@ class Transformer(nn.Module):
         self.num_layer = int(config['model']['num_layer'])
         self.dropout = float(config['model']['dropout'])
         
-        self.embedding = nn.Linear(feature_dim, self.hidden_size)
+        self.embedding = nn.Linear(input_dim, self.hidden_size)
         self.pos_encoder = PositionalEncoding(d_model=self.hidden_size)
         self.transformer_model = nn.Transformer(d_model=self.hidden_size, nhead=8,\
                                                 num_encoder_layers=self.num_layer,\
                                                 num_decoder_layers=self.num_layer,\
                                                 dropout=self.dropout, batch_first=True)
-        self.fc = nn.Linear(self.hidden_size, 71*72) # global prediction
+        self.fc = nn.Linear(self.hidden_size, output_dim) # global prediction
         self.init_weights()
            
     # def _model_forward(self, src, tgt):
     def forward(self, x, y):
-        # x: (batch_size, input_time_step, feature_dim)
-        # y: (batch_size, output_time_step, feature_dim)
+        # x: (batch_size, input_time_step, input_dim)
+        # y: (batch_size, output_time_step, input_dim)
         bs, fd = x.shape[0], x.shape[2]
         BOS = torch.full((bs, 1, fd), 0, dtype=torch.float).to(self.device)
         

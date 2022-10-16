@@ -15,35 +15,31 @@ def setSeed(seed=31):
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
     torch.backends.cudnn.deterministic = True
-
     
+def read_csv_data(config, mode, DATAPATH):
     """
     Read SWGIM data from path
-    and rename, drop columns
+    and drop columns
+    Returns:
+        all_df (DataFrame):
+            All Data as pandas DataFrame data format
+        truth_df (DataFrame):
+            Truth data as pandas DataFrame data format
     """
-
-def read_csv_data(config, mode, DATAPATH):
     years = [int(y) for y in config['data'][f'{mode}_year'].split(',')]
     
     pred_range = config['global']['predict_range']
-    # if not global drop other location
-    if pred_range not in ['global', 'globalSH']:
+    
+    if pred_range != 'global': # single point prediction, drop other location
         lng, lat = config2strlist(config['global']['predict_range'])
         
         all_df = pd.read_csv(DATAPATH / Path(f'single_point_{mode}.csv'), header=list(range(6)), index_col=0)
         # drop columns
-        use_cols = list(range(8)) + [list(all_df.columns).index(('CODE', 'GIM', '10TEC', 'I3', lng, lat))]
-        # all_df = all_df.iloc[:, use_cols]
         all_df = all_df.loc[all_df.columns[:8] + [('CODE', 'GIM', '10TEC', 'I3', lng, lat)]]
-        
-    
-    else:
-        use_cols = list(range(8))
-        use_cols += list(range(10, 10 + 71*72)) if pred_range == 'global'\
-            else list(range(10 + 71*72*2, 10 + 71*72*2 + 256))
-        # droplist = [0, 9, 10] + list(range(5122, 10235)) # 71*72 + 10 = 5122
-        # renamelist = ['year', 'DOY', 'hour', 'Kp index', 'R', 'Dst-index, nT', 'ap_index, nT', 'f10.7_index'] +\
-        #                 [(lat*2.5, lng) for lat in range(35, -36, -1) for lng in range(-180, 180, 5)]
+            
+    else: # global
+        use_cols = list(range(10 + 71*72)) + list(range(10 + 71*72*2, 10 + 71*72*2 + 256))
+        # drop TEC error, sh error
 
         df_list = []
         print('Reading csv data...')
@@ -58,11 +54,11 @@ def read_csv_data(config, mode, DATAPATH):
             df_list.append(year_df)
             
         all_df = pd.concat(df_list, axis=0).reset_index(drop=True)
-    
-    
+        
     # get truth_df
     tmp = int(config['model']['input_time_step'])
-    truth_df = all_df.drop(columns='OMNIWeb').iloc[tmp:].reset_index(drop=True)
+    truth_df = all_df.iloc[tmp:, 10:]
+    # drop date, SW and label
     del tmp
           
     return all_df, truth_df
@@ -83,9 +79,8 @@ def get_indices(config, all_df, seed, mode='train', p=0.8):
     p = config.getfloat('data', 'valid_ratio')
     
     tc_limit = config.getint('model', 'input_time_step') + config.getint('model', 'output_time_step')
-    reserved = config.getint('data', 'reserved')
     
-    indices = all_df.index[max(0, reserved - tc_limit + 1):len(all_df.index) - tc_limit + 1].to_series()
+    indices = all_df.index[:len(all_df.index) - tc_limit + 1].to_series()
     if mode == 'train':
         indices = indices.sample(frac=1, random_state=seed).tolist()
         return indices[:int(len(indices)*p)], indices[int(len(indices)*p):]   

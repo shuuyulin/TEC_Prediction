@@ -11,6 +11,7 @@ from dataset import initialize_dataset
 from training_tools import initialize_criterion, initialize_optimizer, initialize_lr_scheduler
 from models import initialize_model
 from output import exporting
+import copy
 
 def get_parser():
     parser = argparse.ArgumentParser()
@@ -20,41 +21,47 @@ def get_parser():
     parser.add_argument('-k','--checkpoint', type=str) # continue training, ignore in testing
     return parser
 
-def main():
-    # argparser
-    parser = get_parser()
-    args = parser.parse_args()
+def get_config(args):
     
     # configparser
     config = configparser.ConfigParser()
     config.read(args.config)
     
-    # paths
-    RECORDPATH = get_record_path(args)
-    DATAPATH = './data/'
     # device
     if not torch.cuda.is_available():
         config['global']['device'] = 'cpu'
         
+    if config['preprocess']['normalization_type'] == 'None':
+        config['preprocess']['predict_norm'] = 'False'
+    return config
+
+def main():
+    # argparser
+    args = get_parser().parse_args()
+    config = get_config(args)
+    
+    # paths
+    RECORDPATH = get_record_path(args)
+    DATAPATH = './data/'
+            
     rd_seed = config.getint('global', 'seed')
     setSeed(rd_seed)
     
     # read csv data
     df, truth_df = read_csv_data(config, args.mode, DATAPATH)
+    pred_df = copy.deepcopy(df)
     
     # preprocessing
     processer = initialize_processer(config)
     
     if config['preprocess']['normalization_type'] != 'None':
         df = processer.preprocess(df)
-    else: # no normalization
-        config['preprocess']['predict_norm'] = 'False'
-        
+                    
     if config['preprocess']['predict_norm'] == 'True':
         truth_df = processer.preprocess(truth_df)
         
-    print(df.info())
-    print(truth_df.info())
+    # print(df.info())
+    # print(truth_df.info())
     # print(df.head())
     # print(truth_df.head())
     # exit()
@@ -63,13 +70,13 @@ def main():
     if args.mode == 'train':
     
         train_indices, valid_indices = get_indices(config, df, rd_seed, 'train')
-        train_loader = initialize_dataset(config, df, truth_df, train_indices, task="train")
-        valid_loader = initialize_dataset(config, df, truth_df, valid_indices, task="eval")
+        train_loader = initialize_dataset(config, df, truth_df, train_indices, processer, task="train")
+        valid_loader = initialize_dataset(config, df, truth_df, valid_indices, processer, task="eval")
         print(f'indices len: {len(train_indices)}, {len(valid_indices)}')
     elif args.mode == 'test':
         
         test_indices = get_indices(config, df, rd_seed, 'test')
-        test_loader = initialize_dataset(config, df, truth_df, test_indices, task="eval")
+        test_loader = initialize_dataset(config, df, truth_df, test_indices, processer, task="eval")
         print(f'indices len: {len(test_indices)}')
     else:
         raise AttributeError(f'no mode name: {args.mode}')
@@ -87,7 +94,7 @@ def main():
     
     if args.mode == 'train':
         optimizer = initialize_optimizer(config, model.parameters())
-        scheduler = initialize_lr_scheduler(config, optimizer)
+        scheduler = initialize_lr_scheduler(config, len(train_loader),  optimizer)
         
         # TODO: tensorboard recording
         tr_losses, vl_losses, lrs = [], [], []
@@ -98,7 +105,7 @@ def main():
             tr_loss = train_one(config, model, train_loader, optimizer, scheduler)
             vl_loss, _ = eval_one(config, model, valid_loader)
             lrs.append(get_lr(optimizer))
-            scheduler.step(vl_loss)
+            if config['train']['lr_scheduler'] != 'OneCycleLR':scheduler.step(vl_loss)
             tr_losses.append(tr_loss)
             vl_losses.append(vl_loss)
             if vl_loss <= bestloss:
@@ -116,10 +123,10 @@ def main():
         loss, pred = eval_one(config, model, test_loader, 'Test')
         
         print(f'test unpostprocessed loss: {loss}')
-        # np.save(open('predict.npy', 'wb'), pred)
-        # pred = np.load(open('predict.npy', 'rb'))
-        
-        exporting(config, pred, df, processer, RECORDPATH)
+        np.save(open(RECORDPATH / 'predict.npy', 'wb'), pred)
+        # pred = np.load(open(RECORDPATH / 'predict.npy', 'rb'))
+        # print(pred.shape)
+        exporting(config, pred, pred_df, processer, RECORDPATH)
         
 
 def train_one(config, model, dataloader, optimizer, scheduler=None):
@@ -136,7 +143,8 @@ def train_one(config, model, dataloader, optimizer, scheduler=None):
             loss.backward()
                         
             optimizer.step()
-            # scheduler.step()
+            if config['train']['lr_scheduler'] == 'OneCycleLR':
+                scheduler.step()
 
             nowloss = loss.item()
 
