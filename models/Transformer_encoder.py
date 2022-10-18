@@ -57,7 +57,7 @@ class Transformer_encoder(nn.Module):
             pred = fc_out[:,-1]
         elif self.seq_base == 'latitude':
             pred = fc_out.view(-1, 71*72)
-        elif self.seq_base == 'longitude':
+        elif self.seq_base == 'longtitude':
             pred = torch.permute(fc_out, (0, 2, 1)).reshape(-1, 71*72)
         
         return pred, self.criterion(pred.float(), y.float())\

@@ -36,10 +36,13 @@ def initialize_model(config, arg, *args, **kwargs):
     elif seq_base == 'latitude':
         input_dim = len(features) - 1 + 72 * input_time_step
         output_dim = 72
-    elif seq_base == 'longitude':
+    elif seq_base == 'longtitude':
         input_dim = len(features) - 1 + 71 * input_time_step
         output_dim = 71
-                
+    else:
+        print('seq_base has not been defined in config file!')
+        raise AttributeError
+    
     if arg.mode == 'train':
         model = model_list[model_name](config, arg, input_dim, output_dim, *args, **kwargs)
         if arg.checkpoint is not None:
