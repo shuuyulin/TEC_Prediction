@@ -13,7 +13,7 @@ def SWGIM_export(config, rounding_digit, pred, pred_df, processer, RECORDPATH):
     
     print('Write prediction to DataFrame...')
     for i, col_name in tqdm(enumerate(pred_df.columns[10:])):
-        pred_df[col_name] = pred[i]
+        pred_df[col_name] = pred[i].tolist()
     
     # post processing
     if config['preprocess']['predict_norm'] == 'True':
@@ -23,7 +23,7 @@ def SWGIM_export(config, rounding_digit, pred, pred_df, processer, RECORDPATH):
     pred_df = pred_df.rename(columns={'CODE':SWGIM_model_name})
     
     # rounding digit
-    # pred_df = pred_df.round(rounding_digit)
+    pred_df = pred_df.round(rounding_digit)
     
     print(pred_df.info())
     print('Saving to csv file...')

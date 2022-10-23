@@ -117,13 +117,13 @@ def main():
  
         # Plot train/valid loss, accuracy, learning rate
         plot_fg(tr_losses, 'losses', 'loss', RECORDPATH, vl_losses)
-        plot_fg(lrs, 'lrs', 'lr', RECORDPATH)
+        plot_fg(np.log10(lrs), 'lrs', 'log(lr)', RECORDPATH)
         
     elif args.mode == 'test':
         loss, pred = eval_one(config, model, test_loader, 'Test')
         
         print(f'test unpostprocessed loss: {loss}')
-        np.save(open(RECORDPATH / 'predict.npy', 'wb'), pred)
+        # np.save(open(RECORDPATH / 'predict.npy', 'wb'), pred)
         # pred = np.load(open(RECORDPATH / 'predict.npy', 'rb'))
         # print(pred.shape)
         exporting(config, pred, pred_df, processer, RECORDPATH)
