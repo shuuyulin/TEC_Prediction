@@ -20,21 +20,6 @@ def TEC_formatter(batch): # ignore space weather
         'y':y,
     }
     
-def TEC_Lat_formatter(batch):
-    
-    _, tec, truth = zip(*batch)
-    
-    #only take last tec
-    truth = [t[-1] for t in truth]
-    
-    x = torch.stack(tec).view((x.shape[0],72, -1)) #batch, 72, 71*n_hours
-    y = torch.stack(truth).view((x.shape[0],72, -1)) #batch, 72, 71
-    
-    return {
-        'x':x,
-        'y':y,
-    }
-
 def LSTM_TEC_formatter(batch): # ignore space weather
     
     tec, truth = zip(*batch)
@@ -89,29 +74,3 @@ def Seq2Seq_TEC_formatter(batch): # ignore space weather
         'x':x,
         'y':y,
     }
-
-def Seq2Seq_TEC_2SW_formatter(batch): # with space weather
-    # print(batch)
-    sw, tec, truth = zip(*batch)
-    
-    sw = [data[:,[4, 3]] for data in sw]
-    x = torch.stack([torch.cat((a,b), dim=1) for a, b in zip(sw, tec)])
-    y = torch.stack(truth)
-    
-    return {        
-        'x':x,
-        'y':y,
-    }
-    
-def Seq2Seq_TEC_5SW_formatter(batch): # with space weather
-    # print(batch)
-    sw, tec, truth = zip(*batch)
-    
-    x = torch.stack([torch.cat((a,b), dim=1) for a, b in zip(sw, tec)])
-    y = torch.stack(truth)
-    
-    return {        
-        'x':x,
-        'y':y,
-    }
-      

@@ -78,13 +78,16 @@ def get_indices(config, all_df, seed, mode='train', p=0.8):
     """
     p = config.getfloat('data', 'valid_ratio')
     
-    tc_limit = config.getint('model', 'input_time_step') + config.getint('model', 'output_time_step')
-    
-    indices = all_df.index[:len(all_df.index) - tc_limit + 1].to_series()
+    i_step, o_step = int(config['model']['input_time_step']), int(config['model']['output_time_step'])
+            
     if mode == 'train':
+        indices = all_df.index[:len(all_df.index) - i_step - o_step + 1].to_series()
         indices = indices.sample(frac=1, random_state=seed).tolist()
         return indices[:int(len(indices)*p)], indices[int(len(indices)*p):]   
     elif mode == 'test':
+        # k = len(all_df.index) - i_step - (0 if config['model']['model_name'] == 'Transformer_ED' else o_step - 1)
+        k = len(all_df.index) - i_step - o_step + 1
+        indices = all_df.index[:k].to_series()
         return indices.tolist()
   
 def config2intlist(confstr) -> list:

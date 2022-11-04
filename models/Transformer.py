@@ -1,7 +1,9 @@
+from tracemalloc import is_tracing
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import math
+import random
 
 class Transformer(nn.Module):
     def __init__(self, config, arg, input_dim, output_dim, criterion=None):
@@ -13,6 +15,7 @@ class Transformer(nn.Module):
         self.criterion = criterion
         
         self.device = config['global']['device']
+        self.seq_base = config['data']['seq_base']
         self.input_time_step = int(config['model']['input_time_step'])
         self.output_time_step = int(config['model']['output_time_step'])
         self.hidden_size = int(config['model']['hidden_size'])
@@ -27,21 +30,36 @@ class Transformer(nn.Module):
                                                 dropout=self.dropout, batch_first=True)
         self.fc = nn.Linear(self.hidden_size, output_dim) # global prediction
         self.init_weights()
-           
-    # def _model_forward(self, src, tgt):
+        
+    def _get_BOS(self, x): # input last GTEC map
+        if self.seq_base == 'time':
+            # x: batch_size, n, 71*72
+            return x[:,-1:,:] # take the last
+        elif self.seq_base == 'latitude':
+            # x: batch_size, 71, 72*n
+            return x[:,:,-72:]
+        elif self.seq_base == 'longitude':
+            # x: batch_size, 72, 71*n
+            return x[:,:,-71:]
+            
     def forward(self, x, y):
         # x: (batch_size, input_time_step, input_dim)
         # y: (batch_size, output_time_step, input_dim)
         bs, fd = x.shape[0], x.shape[2]
-        BOS = torch.full((bs, 1, fd), 0, dtype=torch.float).to(self.device)
+        # BOS = torch.full((bs, 1, fd), 0, dtype=torch.float).to(self.device)
+        BOS = self._get_BOS(x)
         
+        # encoder
         src = x
         src_embedded = self.embedding(src)
         src_pe_out = self.pos_encoder(src_embedded)
         memory = self.transformer_model.encoder(src_pe_out)
         
+        # output to store
+        outputs = torch.zeros(y.shape).to(self.device)
+        
         tgt = BOS
-        for _ in range(self.output_time_step):
+        for step_idx in range(self.output_time_step):
             
             tgt_embedded = self.embedding(tgt)
             tgt_mask = self._generate_square_subsequent_mask(tgt_embedded.size(1)).to(self.device)
@@ -49,14 +67,20 @@ class Transformer(nn.Module):
             
             trans_out = self.transformer_model.decoder(tgt_pe_out, memory,\
                                                 tgt_mask=tgt_mask)
-            # trans_out: (batch_size, output_time_step, hidden_size)
+            # trans_out: (batch_size, tgt.shape[1], hidden_size)
             
             fc_out = self.fc(trans_out) # F.relu()
-            # fc_out: (batch_size, output_time_step, 71*72)
-            tgt = torch.cat((tgt, fc_out[:,-1:]), dim=1)
+            # fc_out: (batch_size, tgt.shape[1], 71*72)
             
-        return fc_out[:,-1], self.criterion(fc_out.float(), y.float())\
-                    if self.criterion != None else fc_out[:,-1]
+            outputs[:,step_idx] = fc_out[:,-1]
+            
+            if self.training and random.random() < float(self.config['train']['teacher_forcing_ratio']):
+                tgt = torch.cat((tgt, y[:,step_idx:step_idx+1]), dim=1)
+            else:
+                tgt = torch.cat((tgt, fc_out[:,-1:]), dim=1)
+            
+        return outputs, self.criterion(outputs.float(), y.float())\
+                    if self.criterion != None else outputs
             
     def init_weights(self):
         initrange = 0.1

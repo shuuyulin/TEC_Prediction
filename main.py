@@ -120,12 +120,12 @@ def main():
         plot_fg(np.log10(lrs), 'lrs', 'log(lr)', RECORDPATH)
         
     elif args.mode == 'test':
-        loss, pred = eval_one(config, model, test_loader, 'Test')
+        # loss, pred = eval_one(config, model, test_loader, 'Test')
         
-        print(f'test unpostprocessed loss: {loss}')
+        # print(f'test unpostprocessed loss: {loss}')
         # np.save(open(RECORDPATH / 'predict.npy', 'wb'), pred)
-        # pred = np.load(open(RECORDPATH / 'predict.npy', 'rb'))
-        # print(pred.shape)
+        pred = np.load(open(RECORDPATH / 'predict.npy', 'rb'))
+        print(pred.shape)
         exporting(config, pred, pred_df, processer, RECORDPATH)
         
 
@@ -161,8 +161,9 @@ def eval_one(config, model, dataloader, mode='Valid'):
             for idx, data in enumerate(tqdm_loader):
                 for d in data:
                     data[d] = data[d].to(device=config['global']['device'])
-
-                output, loss = model(**data) #output shape(batch, output_step or 1 , 1)
+                # TODO: seq output to csv
+                output, loss = model(**data)
+                #output shape(batch, output_step or 1 , 71*72)
                 
                 # print(output.shape)
                 output_list.append(output.detach().cpu().numpy())
@@ -170,9 +171,8 @@ def eval_one(config, model, dataloader, mode='Valid'):
                 nowloss = loss.item()
                 totalloss += nowloss
                 tqdm_loader.set_postfix(loss=f'{nowloss:.7f}', avgloss=f'{totalloss/(idx+1):.7f}')
-    tec_pred_list = np.concatenate(output_list, axis=0) # len, 71*72
-    # tec_pred_list = np.array(output_list)
-    
+    tec_pred_list = np.concatenate(output_list, axis=0) # (len, 71*72) or (len, output_step, 71*72)
+        
     return totalloss/len(tqdm_loader), tec_pred_list
 
 if __name__ == '__main__':

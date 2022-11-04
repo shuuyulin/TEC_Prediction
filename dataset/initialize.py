@@ -7,12 +7,9 @@ def initialize_dataset(config, *args, **kwargs):
     }
     collate_fn_type_list = {
         'LSTM_TEC' : LSTM_TEC_formatter,
-        # 'LSTM_TEC_2SW' : LSTM_TEC_2SW_formatter,
         'LSTM_Seq2Seq_TEC' : Seq2Seq_TEC_formatter,
-        # 'LSTM_Seq2Seq_TEC_2SW' : Seq2Seq_TEC_2SW_formatter,
-        # 'LSTM_Seq2Seq_TEC_5SW' : Seq2Seq_TEC_5SW_formatter,
         'Transformer_encoder_GTEC' : TEC_formatter,
-        'Transformer_GTEC' : Seq2Seq_TEC_formatter,
+        'Transformer_ED' : Seq2Seq_TEC_formatter,
     }
     
     dataset_type = config['data']['dataset_type']

@@ -70,7 +70,7 @@ class SWGIMDataset(Dataset):
             if self.seq_base == 'latitude': # TODO: lat, long for SW, SH features
                 x = torch.permute(x.view(-1, 71, 72), (1, 0, 2)).reshape(71, -1)
                 # y = torch.permute(y.view(-1, 71, 72), (1, 0, 2)).reshape(71, -1)
-            elif self.seq_base == 'longtitude':
+            elif self.seq_base == 'longitude':
                 x = torch.permute(x.view(-1, 71, 72), (2, 0, 1)).reshape(72, -1)
                 # y = torch.permute(y.view(-1, 71, 72), (2, 0, 1)).reshape(72, -1)
                 

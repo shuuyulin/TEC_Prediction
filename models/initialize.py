@@ -11,7 +11,7 @@ def initialize_model(config, arg, *args, **kwargs):
         'LSTM_TEC':LSTMTEC,
         'LSTM_Seq2Seq_TEC': LSTM_Seq2Seq,
         'Transformer_encoder_GTEC' : Transformer_encoder,
-        'Transformer_GTEC' : Transformer,
+        'Transformer_ED' : Transformer,
     }
     
     # model_ft_list = {
@@ -21,7 +21,7 @@ def initialize_model(config, arg, *args, **kwargs):
     #     'LSTM_Seq2Seq_TEC_2SW' : 3,
     #     'LSTM_Seq2Seq_TEC_5SW' : 6,
     #     'Transformer_encoder_GTEC' : 71*72,
-    #     'Transformer_GTEC' : 71*72,
+    #     'Transformer_ED' : 71*72,
     # }
     
     model_name = config['model']['model_name']
@@ -36,7 +36,7 @@ def initialize_model(config, arg, *args, **kwargs):
     elif seq_base == 'latitude':
         input_dim = len(features) - 1 + 72 * input_time_step
         output_dim = 72
-    elif seq_base == 'longtitude':
+    elif seq_base == 'longitude':
         input_dim = len(features) - 1 + 71 * input_time_step
         output_dim = 71
     else:
