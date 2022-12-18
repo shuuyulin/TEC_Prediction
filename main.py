@@ -18,7 +18,8 @@ def get_parser():
     parser.add_argument('-c', '--config', type=str, default='config.ini')
     parser.add_argument('-m', '--mode', type=str, default='train')
     parser.add_argument('-r','--record', type=str) # record path
-    parser.add_argument('-k','--checkpoint', type=str) # continue training, ignore in testing
+    parser.add_argument('-k','--model_checkpoint', type=str) # continue training, ignore in testing
+    parser.add_argument('-o','--optimizer_checkpoint', type=str) # continue training, ignore in testing
     return parser
 
 def get_config(args):
@@ -93,7 +94,7 @@ def main():
     model = initialize_model(config, args, criterion).to(device=config['global']['device'])
     
     if args.mode == 'train':
-        optimizer = initialize_optimizer(config, model.parameters())
+        optimizer = initialize_optimizer(config, args, model.parameters())
         scheduler = initialize_lr_scheduler(config, len(train_loader),  optimizer)
         
         # TODO: tensorboard recording
@@ -112,6 +113,7 @@ def main():
                 bestloss = vl_loss
                 bepoch = epoch
                 torch.save(model.state_dict(), RECORDPATH / Path('best_model.pth'))
+                torch.save(optimizer.state_dict(), RECORDPATH / Path('optimizer.pth'))
 
         print(f'best valid loss: {bestloss}, epoch: {bepoch}')
  
@@ -120,11 +122,11 @@ def main():
         plot_fg(np.log10(lrs), 'lrs', 'log(lr)', RECORDPATH)
         
     elif args.mode == 'test':
-        # loss, pred = eval_one(config, model, test_loader, 'Test')
+        loss, pred = eval_one(config, model, test_loader, 'Test')
         
-        # print(f'test unpostprocessed loss: {loss}')
+        print(f'test unpostprocessed loss: {loss}')
         # np.save(open(RECORDPATH / 'predict.npy', 'wb'), pred)
-        pred = np.load(open(RECORDPATH / 'predict.npy', 'rb'))
+        # pred = np.load(open(RECORDPATH / 'predict.npy', 'rb'))
         print(pred.shape)
         exporting(config, pred, pred_df, processer, RECORDPATH)
         
