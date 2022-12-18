@@ -8,7 +8,7 @@ def SWGIM_export(config, pred, *args, **kwargs):
     o_step, i_step = int(config['model']['output_time_step']), int(config['model']['input_time_step'])
     
     if len(pred.shape) > 2: # sequence GTEC map output
-        for cur_step in [3]:#range(o_step):
+        for cur_step in range(o_step):
             pred_step = pred[:,cur_step]
             
             # pred_step = np.concatenate([[[None]*pred_step.shape[-1]]*(i_step + cur_step), pred_step[:-cur_step-1]], axis=0).transpose()
