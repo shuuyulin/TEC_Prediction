@@ -32,7 +32,7 @@ class processer():
         
         for col in df.columns:
             param_key = str(col)     
-            if col[1] in ('year','DOY','hour', 'Geomagnetic Storms Size','Geomagnetic Storms State'):
+            if col[1] in ['year','DOY', 'hour']:#('year','DOY','hour', 'Geomagnetic Storms Size','Geomagnetic Storms State'):
                 pass
             elif param_key in self.norm_params:
                 df[col] = self.norm.normalize(df[col], *self.norm_params[param_key])
@@ -44,7 +44,7 @@ class processer():
     def postprocess(self, df):
         for col in df.columns:
             param_key = str(col)     
-            if col[1] in ('year','DOY','hour', 'Geomagnetic Storms Size','Geomagnetic Storms State'):
+            if col[1] in ['year','DOY', 'hour']:#('year','DOY','hour', 'Geomagnetic Storms Size','Geomagnetic Storms State'):
                 pass
             elif param_key in self.norm_params:
                 df[col] = self.norm.denormalize(df[col], *self.norm_params[param_key])
