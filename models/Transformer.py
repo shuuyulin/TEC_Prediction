@@ -31,7 +31,7 @@ class Transformer(nn.Module):
         self.fc = nn.Linear(self.hidden_size, output_dim) # global prediction
         self.init_weights()
         
-    def _get_BOS(self, x): # input last GTEC map
+    def _get_BOS(self, x): # TODO: SW, label feature
         if self.seq_base == 'time':
             # x: batch_size, n, 71*72
             return x[:,-1:,:] # take the last
