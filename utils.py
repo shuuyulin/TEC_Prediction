@@ -72,7 +72,7 @@ def get_indices(config, all_df, seed, mode='train', p=0.8):
         p (float, optional): Spliting ratio. Defaults to 0.8.
 
     Returns:
-        indices (tuple): (train_indices, valid_indices)
+        indices (tuple): (valid_indices, train_indices)
             delete data indices which total needed data exceed df
             shuffled 
     """
@@ -83,6 +83,7 @@ def get_indices(config, all_df, seed, mode='train', p=0.8):
     if mode == 'train':
         indices = all_df.index[:len(all_df.index) - i_step - o_step + 1].to_series()
         indices = indices.sample(frac=1, random_state=seed).tolist()
+        # indices = indices.tolist()
         return indices[:int(len(indices)*p)], indices[int(len(indices)*p):]   
     elif mode == 'test':
         # k = len(all_df.index) - i_step - (0 if config['model']['model_name'] == 'Transformer_ED' else o_step - 1)
@@ -91,9 +92,12 @@ def get_indices(config, all_df, seed, mode='train', p=0.8):
         return indices.tolist()
   
 def config2intlist(confstr) -> list:
-    return [int(i) for i in confstr.split(',')]
+    return [int(i) for i in confstr.split(',') if i != '']
 def config2strlist(confstr) -> list:
-    return [i.strip() for i in confstr.split(',')]
+    return [i.strip() for i in confstr.split(',') if i != '']
+
+def mapping2Hibert(value, limit=1):
+    return torch.cat((torch.sin(value / limit * 2 * np.pi), torch.cos(value / limit * 2 * np.pi)), dim=-1)
 
 import matplotlib.pyplot as plt
 def plot_fg(x1, title, y, path, x2=None):
