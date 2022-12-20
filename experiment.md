@@ -88,10 +88,10 @@
 | 92 |  global   | Transformer_E  |   set6   | longitude | -23hr~0hr |   1hr    |    0.730    |   12, 128   | min-max, no  |
 | 93 |  global   | Transformer_E  |   set4   | latitude  | -3hr~0hr  |   1hr    |    0.504    |   12, 128   |     None     |
 | 94 |  global   | Transformer_E  |   set1   | longitude | -23hr~0hr |   1hr    |    0.561    |   12, 128   | min-max, no  |
-| 95 |  global   | Transformer_E  |   set3   | longitude | -23hr~0hr |   6hr    |             |   12, 128   | min-max, no  |
-| 96 |  global   | Transformer_E  |   set4   | longitude | -23hr~0hr |   6hr    |             |   12, 128   | min-max, no  |
-| 97 |  global   | Transformer_E  |   set5   | longitude | -23hr~0hr |   6hr    |             |   12, 128   | min-max, no  |
-| 98 |  global   | Transformer_E  |   set6   | longitude | -23hr~0hr |   6hr    |             |   12, 128   | min-max, no  |
+| 95 |  global   | Transformer_E  |   set3   | longitude | -23hr~0hr |   6hr    |    1.581    |   12, 128   | min-max, no  |
+| 96 |  global   | Transformer_E  |   set4   | longitude | -23hr~0hr |   6hr    |    1.580    |   12, 128   | min-max, no  |
+| 97 |  global   | Transformer_E  |   set5   | longitude | -23hr~0hr |   6hr    |    1.879    |   12, 128   | min-max, no  |
+| 98 |  global   | Transformer_E  |   set6   | longitude | -23hr~0hr |   6hr    |    2.000    |   12, 128   | min-max, no  |
 
 - features set:  
     - set1: TEC  
