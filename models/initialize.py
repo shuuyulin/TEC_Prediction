@@ -45,6 +45,7 @@ def initialize_model(config, arg, *args, **kwargs):
         return model
     else: # test
         model = model_list[model_name](config, arg, input_dim, output_dim, *args, **kwargs)
-        model.load_state_dict(torch.load(Path(arg.record) / 'best_model.pth'))
+        model.load_state_dict(torch.load(Path(arg.record) / 'best_model.pth',
+                                         map_location=torch.device(config['global']['device'])))
         return model
     
