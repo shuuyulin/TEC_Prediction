@@ -31,6 +31,7 @@ def initialize_model(config, arg, *args, **kwargs):
         output_dim = 72
     elif seq_base == 'longitude':
         input_dim = 2*len(date_features) + (len(global_features) + 71) * input_time_step + 2*seq_pos_feature
+        # changes of normalization of date/seq_pos feature 
         output_dim = 71
     else:
         print('seq_base has not been defined in config file!')
