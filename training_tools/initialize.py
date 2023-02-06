@@ -8,6 +8,7 @@ def initialize_criterion(config, *args, **kwargs):
         'MSELoss': nn.MSELoss,
         'RMSELoss': RMSELoss,
         'L1Loss': nn.L1Loss,
+        'SmoothL1Loss': nn.SmoothL1Loss,
     }
     criterion_type = config['train']['criterion']
     
