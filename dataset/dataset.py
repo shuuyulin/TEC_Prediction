@@ -95,5 +95,6 @@ class SWGIMDataset(Dataset):
                 x_list = [tec, glob, seq_pos]
         # for i in x_list:
         #     print(i.shape)
+        
         x = torch.cat(x_list, dim=1)
         return  x, y

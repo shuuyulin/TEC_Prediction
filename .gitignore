@@ -1,6 +1,7 @@
 **/__pycache__/
 **/*.pth
-raw_data/SWGIM_year/*
+data/raw_data/SWGIM_year/*
+data/raw_data/TWRR/*
 record/*
 **/*.csv
 prediction-result-presentation/
