@@ -20,6 +20,7 @@ def get_parser():
     parser.add_argument('-r','--record', type=str) # record path
     parser.add_argument('-k','--model_checkpoint', type=str) # continue training, ignore in testing
     parser.add_argument('-o','--optimizer_checkpoint', type=str) # continue training, ignore in testing
+    parser.add_argument('-t','--retest_train_data', action='store_true')
     return parser
 
 def get_config(args):
@@ -34,6 +35,11 @@ def get_config(args):
         
     if config['preprocess']['normalization_type'] == 'None':
         config['preprocess']['predict_norm'] = 'False'
+       
+    # print(args.retest_train_data)
+    if args.retest_train_data:
+        config['data']['test_year'] = "2018, 2019"
+    config['global']['device'] = 'cpu'
     return config
 
 def main():
@@ -128,7 +134,7 @@ def main():
         # np.save(open(RECORDPATH / 'predict.npy', 'wb'), pred)
         # pred = np.load(open(RECORDPATH / 'predict.npy', 'rb'))
         print(pred.shape)
-        exporting(config, pred, pred_df, processer, RECORDPATH)
+        exporting(args, config, pred, pred_df, processer, RECORDPATH)
         
 
 def train_one(config, model, dataloader, optimizer, scheduler=None):
