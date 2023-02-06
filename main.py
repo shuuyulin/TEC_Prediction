@@ -140,7 +140,7 @@ def main():
 def train_one(config, model, dataloader, optimizer, scheduler=None):
     model.train()
     totalloss = 0
-    with tqdm(dataloader, unit='batch', desc='Train') as tqdm_loader:
+    with tqdm(dataloader, unit='batch', desc='Train',dynamic_ncols=True) as tqdm_loader:
         for idx, data in enumerate(tqdm_loader):
             for d in data:
                 data[d] = data[d].to(device=config['global']['device'])
@@ -165,7 +165,7 @@ def eval_one(config, model, dataloader, mode='Valid'):
     output_list = []
     totalloss, bestloss = 0, 10
     with torch.no_grad():
-        with tqdm(dataloader,unit='batch',desc=mode) as tqdm_loader:
+        with tqdm(dataloader,unit='batch',desc=mode, dynamic_ncols=True) as tqdm_loader:
             for idx, data in enumerate(tqdm_loader):
                 for d in data:
                     data[d] = data[d].to(device=config['global']['device'])

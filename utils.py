@@ -43,7 +43,7 @@ def read_csv_data(config, mode, DATAPATH):
 
         df_list = []
         print('Reading csv data...')
-        for year in tqdm(years):
+        for year in tqdm(years, dynamic_ncols=True):
             year_df = pd.read_csv(DATAPATH / Path(f'raw_data/SWGIM_year/{year}.csv'),\
                 header=list(range(6)), index_col=0)
             
