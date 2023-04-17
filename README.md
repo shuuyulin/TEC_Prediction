@@ -1,8 +1,21 @@
 # TEC_Prediction
 
 ## Usage
+
+<!-- python3 main.py --config [config_file_path] --mode [mode train/test] --record [record_path] -->
 ```
-python3 main.py --config [config_file_path] --mode [mode train/test] --record [record_path]
+python main.py [-h] [-c CONFIG] [-m MODE] [-r RECORD] [-k MODEL_CHECKPOINT]
+               [-o OPTIMIZER_CHECKPOINT] [-t] [-s SHIFTING_CNT]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -c CONFIG, --config config file path
+  -m MODE, --mode train or test mode
+  -r RECORD, --record record folder path
+  -k MODEL_CHECKPOINT, --model_checkpoint model checkpoint file path
+  -o OPTIMIZER_CHECKPOINT, --optimizer_checkpoint optimizer file path
+  -t, --retest_train_data, true if using 2018-2019 data as training data
+  -s SHIFTING_CNT, --shifting_cnt shifting test for multiple output time steps
 ```
 ## File explanation
 
