@@ -22,7 +22,8 @@ class SWGIMDataset(Dataset):
         self.seq_base = self.config['data']['seq_base']
         self.seq_pos_feature = self.config.getboolean('data', 'seq_feature')
         self.date_slicing, self.glob_slicing, self.tec_slicing, self.truth_slicing = self._get_feature_slice()
-        
+        self.notHibert = not (self.config['data']['date_seq_base_norm'] == "Hibert")
+
         if task == 'train' and self.config['train']['shuffle'] == 'True':
             random.shuffle(self.data_indices)
         else:
@@ -74,7 +75,7 @@ class SWGIMDataset(Dataset):
         y = torch.tensor(y.values, dtype=torch.float32)
 
         # mapping to hibert space
-        time = torch.cat((mapping2Hibert(time[0:1], 366), mapping2Hibert(time[1:2], 24)), dim=-1) # ERROR: time index out of range
+        time = torch.cat((mapping2Hibert(time[0:1], 366, self.notHibert), mapping2Hibert(time[1:2], 24, self.notHibert)), dim=-1) # ERROR: time index out of range
         
         x_list = []
         if self.predict_range != 'global':
@@ -85,13 +86,13 @@ class SWGIMDataset(Dataset):
             if self.seq_base == 'latitude': # TODO: SH tec
                 tec = torch.permute(tec.view(-1, 71, 72), (1, 0, 2)).reshape(71, -1)
                 glob = torch.cat((glob.reshape(-1), time), dim=0).repeat(71, 1)
-                seq_pos = mapping2Hibert((torch.linspace(0, 71, 71)).unsqueeze(1), 71) if self.seq_pos_feature else torch.tensor([])
+                seq_pos = mapping2Hibert((torch.linspace(0, 71, 71)).unsqueeze(1), 71, self.notHibert) if self.seq_pos_feature else torch.tensor([])
                 x_list = [tec, glob, seq_pos]
                     
             elif self.seq_base == 'longitude':
                 tec = torch.permute(tec.view(-1, 71, 72), (2, 0, 1)).reshape(72, -1)
                 glob = torch.cat((glob.reshape(-1), time), dim=0).repeat(72, 1)
-                seq_pos = mapping2Hibert((torch.linspace(0, 72, 72)).unsqueeze(1), 72) if self.seq_pos_feature else torch.tensor([])
+                seq_pos = mapping2Hibert((torch.linspace(0, 72, 72)).unsqueeze(1), 72, self.notHibert) if self.seq_pos_feature else torch.tensor([])
                 x_list = [tec, glob, seq_pos]
         # for i in x_list:
         #     print(i.shape)

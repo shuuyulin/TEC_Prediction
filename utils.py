@@ -96,8 +96,10 @@ def config2intlist(confstr) -> list:
 def config2strlist(confstr) -> list:
     return [i.strip() for i in confstr.split(',') if i != '']
 
-def mapping2Hibert(value, limit=1):
-    # return value
+def mapping2Hibert(value, limit=1, N=False):
+    # FLAG: feature normalization min-max / sin-cos
+    if N:
+        return value    
     return torch.cat((torch.sin(value / limit * 2 * np.pi), torch.cos(value / limit * 2 * np.pi)), dim=-1)
 
 import matplotlib.pyplot as plt

@@ -22,16 +22,17 @@ def initialize_model(config, arg, *args, **kwargs):
     seq_pos_feature = config.getboolean('data', 'seq_feature')
     
     input_time_step = int(config['model']['input_time_step'])
-    
+    s_len = 2 if config['data']['date_seq_base_norm'] == "Hibert" else 1
+
     if seq_base == 'time':
-        input_dim = 2*len(date_features) + len(global_features) + (71*72 if tec_features == 'tec' else 256) + 2*seq_pos_feature
+        input_dim = s_len*len(date_features) + len(global_features) + (71*72 if tec_features == 'tec' else 256) + s_len*seq_pos_feature
         output_dim = 71*72
     elif seq_base == 'latitude':
-        input_dim = 2*len(date_features) + (len(global_features) + 72) * input_time_step + 2*seq_pos_feature
+        input_dim = s_len*len(date_features) + (len(global_features) + 72) * input_time_step + s_len*seq_pos_feature
         output_dim = 72
     elif seq_base == 'longitude':
-        input_dim = 2*len(date_features) + (len(global_features) + 71) * input_time_step + 2*seq_pos_feature
-        # changes of normalization of date/seq_pos feature 
+        # FLAG: feature normalization min-max / sin-cos
+        input_dim = s_len*len(date_features) + (len(global_features) + 71) * input_time_step + s_len*seq_pos_feature
         output_dim = 71
     else:
         print('seq_base has not been defined in config file!')
