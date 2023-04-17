@@ -19,6 +19,8 @@ optional arguments:
 ```
 ## File explanation
 
+- data  
+  - place tec data "SWGIM_year" folder in "./data/raw_data" folder
 - config.ini  
   - config file, containing all configurations  
 - main.py  
