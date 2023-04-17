@@ -21,6 +21,7 @@ def get_parser():
     parser.add_argument('-k','--model_checkpoint', type=str) # continue training, ignore in testing
     parser.add_argument('-o','--optimizer_checkpoint', type=str) # continue training, ignore in testing
     parser.add_argument('-t','--retest_train_data', action='store_true')
+    parser.add_argument('-s','--shifting_cnt', type=int, default=1)
     return parser
 
 def get_config(args):
@@ -39,7 +40,12 @@ def get_config(args):
     # print(args.retest_train_data)
     if args.retest_train_data:
         config['data']['test_year'] = "2018, 2019"
-    config['global']['device'] = 'cpu'
+    
+    if args.shifting_cnt != 1:
+        if args.mode != 'test':
+            print('Mode error, shifting test must be in test mode')
+            raise AttributeError
+
     return config
 
 def main():
@@ -128,7 +134,10 @@ def main():
         plot_fg(np.log10(lrs), 'lrs', 'log(lr)', RECORDPATH)
         
     elif args.mode == 'test':
-        loss, pred = eval_one(config, model, test_loader, 'Test')
+        if args.shifting_cnt > 1:
+            loss, pred = shifting_test_one(args, config, model, test_loader, processer, RECORDPATH, 'Test')
+        else:    
+            loss, pred = eval_one(config, model, test_loader, 'Test')
         
         print(f'test unpostprocessed loss: {loss}')
         # np.save(open(RECORDPATH / 'predict.npy', 'wb'), pred)
@@ -183,5 +192,44 @@ def eval_one(config, model, dataloader, mode='Valid'):
         
     return totalloss/len(tqdm_loader), tec_pred_list
 
+def shifting_test_one(args, config, model, dataloader, processer, RECORDPATH, mode='Test'): # only for longitude
+    model.eval()
+    output_list = []
+    totalloss, bestloss = 0, 10
+    with torch.no_grad():
+        with tqdm(dataloader,unit='batch',desc=mode, dynamic_ncols=True) as tqdm_loader:
+            for idx, data in enumerate(tqdm_loader):
+                for d in data:
+                    data[d] = data[d].to(device=config['global']['device'])
+                
+                output_timestep = np.empty((config.getint('eval', 'batch_size'), args.shifting_cnt, 71*72), dtype=np.float32)
+                for i in range(args.shifting_cnt):
+                    output, loss = model(**data)
+                    output_timestep[:,i] = output.detach().cpu().numpy()
+                    torch.set_printoptions(threshold=10_000)
+                    # print('output', output.shape)
+                    if config['preprocess']['normalization_type'] != 'None' and config['preprocess']['predict_norm'] == 'False':
+                        output = processer.preprocess_t(output).to(config['global']['device'])
+                    output = torch.permute(output.view(8, -1, 71, 72), (0, 3, 1, 2)).reshape(8, 72, -1)
+                    
+                    data['x'] = torch.cat((data['x'][:,:,71:], output), dim=2)
+                    del output
+                        
+                #output shape(batch, shifting_cnt, 71*72)
+                
+                output_list.append(output_timestep) # (365+366)*24, 96, 71*72
+                
+                nowloss = loss.item()
+                totalloss += nowloss
+                tqdm_loader.set_postfix(loss=f'{nowloss:.7f}', avgloss=f'{totalloss/(idx+1):.7f}')
+            
+                if idx % 100 == 99 or idx + 1 == len(tqdm_loader):
+                    tec_pred_list = np.concatenate(output_list, axis=0) #(len, shifting_cnt, 71*72)
+                    np.save(open(RECORDPATH / f'predict{idx}.npy', 'wb'), tec_pred_list)
+                    # print("filenam: ", RECORDPATH / f'predict{idx}.npy')
+                    output_list = []
+                    del tec_pred_list
+        
+    return totalloss/len(tqdm_loader), tec_pred_list
 if __name__ == '__main__':
     main()

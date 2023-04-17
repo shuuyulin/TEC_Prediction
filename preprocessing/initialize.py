@@ -1,5 +1,7 @@
 from .normalization import MinMaxNorm, StandardNorm
 import json
+import pandas as pd
+import torch
 def initialize_processer(config, *args, **kwargs):
     
     normalization_type_list = {
@@ -27,8 +29,9 @@ class processer():
     def __init__(self, norm, norm_params):
         self.norm = norm
         self.norm_params = norm_params
+        self.tec_norm_params = [d for d in self.norm_params][10:10+5112]
         # self.norm_params = [0, 400] # TODO: test all loc using same params
-    def preprocess(self, df):
+    def preprocess(self, df:pd.DataFrame):
         
         for col in df.columns:
             param_key = str(col)     
@@ -41,7 +44,14 @@ class processer():
                 print(f'key {param_key} not exist in norm_params, ignored')
                 raise KeyError
         return df
-    def postprocess(self, df):
+    def preprocess_t(self, tensor:torch.tensor):
+        for idx, param_key in enumerate(self.tec_norm_params):
+            # print(tensor.shape)
+            # print(self.norm_params[param_key])
+            tensor[..., idx] = self.norm.normalize(tensor[..., idx], *self.norm_params[param_key])
+        return tensor
+
+    def postprocess(self, df:pd.DataFrame):
         for col in df.columns:
             param_key = str(col)     
             if col[1] in ['year','DOY', 'hour']:#('year','DOY','hour', 'Geomagnetic Storms Size','Geomagnetic Storms State'):
