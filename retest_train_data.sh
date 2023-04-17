@@ -1,4 +1,4 @@
-for i in 90
+for i in 151
 do
     # tests
     python3 main.py -m test -r ./record/"$i" -c ./record/"$i"/config.ini -t

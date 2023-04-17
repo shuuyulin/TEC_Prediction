@@ -12,7 +12,7 @@ def SWGIM_export(arg, config, pred, *args, **kwargs):
     if len(pred.shape) > 2: # sequence GTEC map output
         for cur_step in range(o_step):
             pred_step = pred[:,cur_step]
-            
+            # print(pred_step.shape)
             # pred_step = np.concatenate([[[None]*pred_step.shape[-1]]*(i_step + cur_step), pred_step[:-cur_step-1]], axis=0).transpose()
             # new_pred = [[[None]*pred_step.shape[-1]]*(i_step + cur_step),
             #             pred_step[:pred_step.shape[0]-cur_step],

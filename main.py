@@ -1,6 +1,3 @@
-# TODO
-# tensorboardX: fix learning curve problem
-# logger
 import argparse
 import configparser
 from pathlib import Path
@@ -37,7 +34,6 @@ def get_config(args):
     if config['preprocess']['normalization_type'] == 'None':
         config['preprocess']['predict_norm'] = 'False'
        
-    # print(args.retest_train_data)
     if args.retest_train_data:
         config['data']['test_year'] = "2018, 2019"
     
@@ -73,13 +69,6 @@ def main():
     if config['preprocess']['predict_norm'] == 'True':
         truth_df = processer.preprocess(truth_df)
         
-    # print(df.info())
-    # print(truth_df.info())
-    # print(df.head())
-    # print(truth_df.head())
-    # exit()
-    
-    # get dataloader
     if args.mode == 'train':
     
         train_indices, valid_indices = get_indices(config, df, rd_seed, 'train')
@@ -94,13 +83,6 @@ def main():
     else:
         raise AttributeError(f'no mode name: {args.mode}')
     
-    # for idx, data in enumerate(train_loader):
-    #     if idx <= 0:
-    #         print(f'{idx} {data}')
-    #         for k in data:
-    #             print(k, data[k].shape)
-    
-    # exit()
     
     criterion = initialize_criterion(config)
     model = initialize_model(config, args, criterion).to(device=config['global']['device'])
@@ -142,9 +124,7 @@ def main():
         print(f'test unpostprocessed loss: {loss}')
         # np.save(open(RECORDPATH / 'predict.npy', 'wb'), pred)
         # pred = np.load(open(RECORDPATH / 'predict.npy', 'rb'))
-        print(pred.shape)
         exporting(args, config, pred, pred_df, processer, RECORDPATH)
-        
 
 def train_one(config, model, dataloader, optimizer, scheduler=None):
     model.train()
@@ -178,11 +158,9 @@ def eval_one(config, model, dataloader, mode='Valid'):
             for idx, data in enumerate(tqdm_loader):
                 for d in data:
                     data[d] = data[d].to(device=config['global']['device'])
-                # TODO: seq output to csv
                 output, loss = model(**data)
                 #output shape(batch, output_step or 1 , 71*72)
                 
-                # print(output.shape)
                 output_list.append(output.detach().cpu().numpy())
                 
                 nowloss = loss.item()
