@@ -1,0 +1,10 @@
+**/__pycache__/
+**/*.pth
+data/*
+record/*
+**/*.csv
+**/*.ipynb
+**/*.zip
+**/*.pickle
+wandb/*
+
