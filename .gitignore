@@ -2,6 +2,8 @@
 **/*.pth
 data/raw_data/SWGIM_year/*
 data/raw_data/TWRR/*
+data/raw_data/SWGIM_TW
+data/SWGIM*
 record/*
 **/*.csv
 prediction-result-presentation/
@@ -11,4 +13,5 @@ prediction-result-presentation/
 **/*.h5
 **/*.pickle
 test/test.jpg
+wandb/*
 

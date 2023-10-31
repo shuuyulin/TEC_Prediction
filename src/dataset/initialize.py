@@ -6,11 +6,11 @@ def initialize_dataset(config, *args, **kwargs):
         'SWGIMDataset': SWGIMDataset,
     }
     collate_fn_type_list = {
-        'LSTM_TEC' : LSTM_TEC_formatter,
+        # 'LSTM_TEC' : LSTM_TEC_formatter,
         'LSTM_Seq2Seq_TEC' : Seq2Seq_TEC_formatter,
         'Transformer_E' : TEC_formatter,
-        # 'Transformer_E' : Seq2Seq_TEC_formatter,
         'Transformer_ED' : Seq2Seq_TEC_formatter,
+        'Transformer_E_mttasks' : TEC_formatter,
     }
     
     dataset_type = config['data']['dataset_type']
@@ -19,20 +19,21 @@ def initialize_dataset(config, *args, **kwargs):
     if dataset_type in dataset_type_list:
         dataset = dataset_type_list[dataset_type](config, *args, **kwargs)
     else:
-        print('dataset_type has not been defined in config file!')
+        logging.error('dataset_type has not been defined in config file!')
         raise AttributeError
     
     if collate_fn_type in collate_fn_type_list:
         collate_fn = collate_fn_type_list[collate_fn_type]
     else:
-        print('collate_fn_type has not been defined in config file!')
+        logging.error('collate_fn_type has not been defined in config file!')
         raise AttributeError
     
-    # print(len(dataset))
-    # print(dataset[0][0].shape)
-    # print(dataset[0][1].shape)
+    print(f'dataset: len {len(dataset)}')
     # print(dataset[0][0])
     # print(dataset[0][1])
+    # print(dataset[0][0].shape)
+    # print(dataset[0][1]['tec'].shape)
+    # print(torch.count_nonzero(dataset[0][1]['tec']))
     # exit()
     
     task = kwargs['task']
