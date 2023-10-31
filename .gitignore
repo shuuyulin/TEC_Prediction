@@ -1,6 +1,6 @@
 **/__pycache__/
 **/*.pth
-data/*
+data/SWGIM*
 record/*
 **/*.csv
 **/*.ipynb
