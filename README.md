@@ -19,6 +19,8 @@ optional arguments:
 ```
 ## File explanation
 
+- data  
+  - place tec data [SWGIM_year](https://drive.google.com/drive/folders/1N1WxlP5DnnSkMMCD1XeHE9bYxL81PisT?usp=share_link) folder in "./data/raw_data" folder
 - config.ini  
   - config file, containing all configurations  
 - main.py  
