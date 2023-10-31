@@ -1,4 +1,4 @@
-for i in 151
+for i in 154
 do
     # train
     python3 main.py -m train -r ./record/"$i" -c ./record/"$i"/config.ini

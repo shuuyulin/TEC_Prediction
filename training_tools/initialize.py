@@ -53,8 +53,8 @@ def initialize_lr_scheduler(config, steps_pep, *args, **kwargs):
         print('lr_scheduler_type has not been defined in config file!')
         raise AttributeError
     elif lr_scheduler_type == 'ReduceLROnPlateau':
-        lr_scheduler = lr_scheduler_type_list[lr_scheduler_type](mode='min', patience=4,# threshold=1e-3,
-                        factor=0.1, min_lr=config.getfloat('train', 'lr')*1e-10, *args, **kwargs)
+        lr_scheduler = lr_scheduler_type_list[lr_scheduler_type](mode='min', patience=4,#, min_lr=config.getfloat('train', 'lr')*1e-10,# threshold=1e-3,
+                        factor=0.1, *args, **kwargs)
     elif lr_scheduler_type == 'CosineAnnealingLR':
         lr_scheduler = lr_scheduler_type_list[lr_scheduler_type](T_max= 2, eta_min=1e-65, *args, **kwargs)
     elif lr_scheduler_type == 'OneCycleLR':

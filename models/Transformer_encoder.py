@@ -46,7 +46,7 @@ class Transformer_encoder(nn.Module):
         # mask = self._generate_square_subsequent_mask(pos_encoder_out.size(1)).to(self.device)
         # trans_output = self.transformer_encoder(pos_encoder_out, mask) # batch_size, seq_len, hidden_size
         trans_output = self.transformer_encoder(pos_encoder_out) # batch_size, seq_len, hidden_size
-        trans_output = trans_output # batch_size, hidden_size
+        # trans_output = trans_output # batch_size, seq_len, hidden_size
         
         fc_out = F.relu(self.fc(trans_output)) # batch_size, 71*72
         

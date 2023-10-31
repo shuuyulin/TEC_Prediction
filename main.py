@@ -39,7 +39,7 @@ def get_config(args):
     
     if args.shifting_cnt != 1:
         if args.mode != 'test':
-            print('Mode error, shifting test must be in test mode')
+            logging.error('Mode error, shifting test must be in test mode')
             raise AttributeError
 
     return config
@@ -106,6 +106,7 @@ def main():
             if vl_loss <= bestloss:
                 bestloss = vl_loss
                 bepoch = epoch
+                
                 torch.save(model.state_dict(), RECORDPATH / Path('best_model.pth'))
                 torch.save(optimizer.state_dict(), RECORDPATH / Path('optimizer.pth'))
 

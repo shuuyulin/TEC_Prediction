@@ -9,6 +9,7 @@ def initialize_dataset(config, *args, **kwargs):
         'LSTM_TEC' : LSTM_TEC_formatter,
         'LSTM_Seq2Seq_TEC' : Seq2Seq_TEC_formatter,
         'Transformer_E' : TEC_formatter,
+        # 'Transformer_E' : Seq2Seq_TEC_formatter,
         'Transformer_ED' : Seq2Seq_TEC_formatter,
     }
     

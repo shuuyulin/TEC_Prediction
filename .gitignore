@@ -8,4 +8,7 @@ prediction-result-presentation/
 **/*organiz*
 **/*.ipynb
 **/*.zip
+**/*.h5
+**/*.pickle
 test/test.jpg
+

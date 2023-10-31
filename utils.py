@@ -6,7 +6,8 @@ import os
 from pathlib import Path
 from tqdm.auto import tqdm
 from pathlib import Path
-
+import logging
+import pickle
 def setSeed(seed=31):
     random.seed(seed)
     os.environ['PYTHONHASHSEED'] = str(seed)
@@ -42,7 +43,7 @@ def read_csv_data(config, mode, DATAPATH):
         # drop TEC error, sh error
 
         df_list = []
-        print('Reading csv data...')
+        logging.info('Reading csv data...')
         for year in tqdm(years, dynamic_ncols=True):
             year_df = pd.read_csv(DATAPATH / Path(f'raw_data/SWGIM_year/{year}.csv'),\
                 header=list(range(6)), index_col=0)
@@ -76,6 +77,10 @@ def get_indices(config, all_df, seed, mode='train', p=0.8):
             delete data indices which total needed data exceed df
             shuffled 
     """
+    # train_indices = pickle.load(open('../GTEC_Prediction/train_idx.pickle', 'rb'))
+    # valid_indices = pickle.load(open('../GTEC_Prediction/valid_idx.pickle', 'rb'))
+    # return train_indices, valid_indices
+
     p = config.getfloat('data', 'valid_ratio')
     
     i_step, o_step = int(config['model']['input_time_step']), int(config['model']['output_time_step'])
@@ -84,6 +89,9 @@ def get_indices(config, all_df, seed, mode='train', p=0.8):
         indices = all_df.index[:len(all_df.index) - i_step - o_step + 1].to_series()
         indices = indices.sample(frac=1, random_state=seed).tolist()
         # indices = indices.tolist()
+        
+        # pickle.dump(indices, open('train_idx.pickle', 'wb'))
+        # exit()
         return indices[:int(len(indices)*p)], indices[int(len(indices)*p):]   
     elif mode == 'test':
         # k = len(all_df.index) - i_step - (0 if config['model']['model_name'] == 'Transformer_ED' else o_step - 1)
@@ -120,7 +128,7 @@ def get_record_path(args):
     if args.mode == 'train':
         RECORDPATH = Path(args.record)
         if RECORDPATH.exists() and any(RECORDPATH.iterdir()):
-            print(f'Warning: replacing folder {RECORDPATH}')
+            logging.warning(f'Replacing folder {RECORDPATH}')
         print(f'Creating folder: {RECORDPATH}')
         RECORDPATH.mkdir(parents=True, exist_ok=True)
     else: # test

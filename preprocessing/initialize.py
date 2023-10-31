@@ -3,7 +3,7 @@ import json
 import pandas as pd
 import torch
 def initialize_processer(config, *args, **kwargs):
-    
+    # drop features and normalize
     normalization_type_list = {
         'min_max' : MinMaxNorm,
         'z_score' : StandardNorm,
